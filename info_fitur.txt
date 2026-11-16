@@ -1,0 +1,110 @@
+Field	Type	Null	Key	Default	Extra
+id	bigint unsigned	NO	PRI	NULL	auto_increment
+category_id	bigint unsigned	YES	MUL	NULL	
+admin_id	int unsigned	NO	MUL	NULL	
+name	varchar(255)	NO		NULL	
+deskripsi	text	YES		NULL	
+image	varchar(255)	YES		NULL	
+price_per_kg	int	NO		NULL	
+poin_per_kg	int	NO		NULL	
+created_at	timestamp	YES		NULL	
+updated_at	timestamp	YES		NULL	
+bsi_harga_id	bigint unsigned	YES	MUL	NULL	
+margin_type	varchar(10)	NO		nominal	
+margin_value	decimal(10,2)	NO		0.00	
+auto_sync	tinyint(1)	NO		1	
+Field	Type	Null	Key	Default	Extra
+id	bigint unsigned	NO	PRI	NULL	auto_increment
+admin_id	int unsigned	NO	MUL	NULL	
+name	varchar(255)	NO		NULL	
+description	varchar(255)	NO		NULL	
+created_at	timestamp	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+updated_at	timestamp	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+Field	Type	Null	Key	Default	Extra
+id	bigint unsigned	NO	PRI	NULL	auto_increment
+user_id	bigint unsigned	YES	MUL	NULL	
+admin_id	int unsigned	YES	MUL	NULL	
+sampah_id	bigint unsigned	YES	MUL	NULL	
+total_weight	double(8,2)	NO		NULL	
+price_per_kg	int	NO		0	
+poin_per_kg	int	NO		0	
+total_income	int	NO		NULL	
+point_received	int	NO		NULL	
+periode	varchar(100)	NO		NULL	
+created_at	timestamp	YES		NULL	
+updated_at	timestamp	YES		NULL	
+kecamatan_id	bigint unsigned	YES	MUL	NULL	
+Field	Type	Null	Key	Default	Extra
+id	int	NO	PRI	NULL	auto_increment
+admin_id	int unsigned	NO	MUL	NULL	
+sampah_id	bigint unsigned	YES	MUL	NULL	
+total_weight	float	NO		NULL	
+harga_per_kg	double	YES		NULL	
+total_price	double	YES		NULL	
+profit	double	YES		NULL	
+periode	varchar(100)	NO		NULL	
+created_at	timestamp	NO		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+updated_at	timestamp	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+kecamatan_id	bigint unsigned	YES	MUL	NULL	
+Field	Type	Null	Key	Default	Extra
+id	int unsigned	NO	PRI	NULL	auto_increment
+name	varchar(255)	YES		NULL	
+photo	varchar(255)	YES		NULL	
+email	varchar(255)	YES		NULL	
+password	varchar(255)	YES		NULL	
+no_whatsapp	varchar(30)	YES		NULL	
+id_cms_privileges	int	YES		NULL	
+kecamatan_id	int unsigned	YES	MUL	NULL	
+created_at	timestamp	YES		NULL	
+updated_at	timestamp	YES		NULL	
+status	varchar(50)	YES		NULL	
+kecamatan	varchar(80)	YES		NULL	
+kelurahan	varchar(80)	YES		NULL	
+rw	varchar(10)	YES		NULL	
+alamat	varchar(255)	YES		NULL	
+tingkat	varchar(12)	YES		NULL	
+jumlah_sampah
+134
+jumlah_kategori
+66
+id	name	id_cms_privileges
+1	Super Admin	1
+5	BSU Mercubuana	4
+10	admin	2
+12	BSU Karya Peduli	4
+13	BSU Madrasah Raudiatul Muta'alimin	4
+14	BSU Melati 1 RW 02	4
+15	BSU Melati 2 RW 02	4
+16	BSU Agathis Botanical RW 02	4
+17	BSU Surya Mandiri Kel.Meruya Selatan	4
+18	BSU Asri SDN Meruya Selatan 1	4
+19	BSU Raflesia SDN Meruya Selatan 3	4
+20	BSU Jack RW 03	4
+21	BSU RPTRA Mahkota	4
+22	BSU RPTRA Meruya Selatan	4
+23	BSU RPTRA Manuver	4
+24	BSU RPTRA Menara	4
+25	BSU RPTRA Manunggal	4
+26	BSU Sumber Rejeki RW 04	4
+27	BSU Rosmerah RW 05	4
+28	BSU Anggrek Bulan RW 06	4
+29	BSU Camal Jaya RW 07	4
+30	BSU Pelangi RW 08	4
+31	BSU Lestari RW 011	4
+33	BSI JAKARATA BARAT	5
+C:\laragon\www\bank_imam-main\app\Http\Controllers\AdminCmsUsersController.php
+C:\laragon\www\bank_imam-main\app\Http\Controllers\UserApp
+C:\laragon\www\bank_imam-main\app\Http\Controllers\UserApp\EducationalNewsController.php
+C:\laragon\www\bank_imam-main\app\Http\Controllers\UserApp\HistoryController.php
+C:\laragon\www\bank_imam-main\app\Http\Controllers\UserApp\HomeController.php
+C:\laragon\www\bank_imam-main\app\Http\Controllers\UserApp\KalkulatorController.php
+C:\laragon\www\bank_imam-main\app\Http\Controllers\UserApp\LoginController.php
+C:\laragon\www\bank_imam-main\app\Http\Controllers\UserApp\PanduanController.php
+C:\laragon\www\bank_imam-main\app\Http\Controllers\UserApp\ProfileController.php
+C:\laragon\www\bank_imam-main\app\Http\Controllers\UserApp\ProfileController.php,
+C:\laragon\www\bank_imam-main\app\Http\Controllers\UserApp\RegisterController.php
+C:\laragon\www\bank_imam-main\app\Http\Controllers\UserApp\SalesController.php
+C:\laragon\www\bank_imam-main\app\Http\Controllers\UserApp\SampahController.php
+C:\laragon\www\bank_imam-main\app\Http\Controllers\UserApp\TukarPoinController.php
+C:\laragon\www\bank_imam-main\app\Http\Controllers\UserApp\TukarSaldoController.php
+C:\laragon\www\bank_imam-main\app\Http\Controllers\UserApp\WithdrawalController.php

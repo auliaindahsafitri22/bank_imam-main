@@ -1,0 +1,73 @@
+OK  RegisterController diubah: semua kelurahan tampil (cadangan: RegisterController.php.bak-kelurahan)
+
+===== register.blade.php, baris 179 dst =====
+179: @endsection
+180: 
+181: @section('scripts')
+182: <script>
+183: document.addEventListener('DOMContentLoaded', function() {
+184:     // Filter BSU berdasarkan Kelurahan (tanpa JavaScript, semua BSU tetap tampil di satu daftar)
+185:     const kelSelect = document.getElementById('kelurahan_id');
+186:     const bsuSelect = document.getElementById('cms_user_id');
+187:     if (kelSelect && bsuSelect) {
+188:         const semuaBsu = Array.from(bsuSelect.querySelectorAll('option')).filter(o => o.value !== '');
+189: 
+190:         function isiBsu(kel, pilih) {
+191:             bsuSelect.innerHTML = '';
+192:             const ph = document.createElement('option');
+193:             ph.value = ''; ph.disabled = true; ph.selected = true;
+194:             if (!kel) {
+195:                 ph.textContent = 'Pilih Kelurahan terlebih dahulu';
+196:                 bsuSelect.appendChild(ph);
+197:                 bsuSelect.disabled = true;
+198:                 return;
+199:             }
+200:             bsuSelect.disabled = false;
+201:             const cocok = semuaBsu.filter(o => o.dataset.kelurahan === String(kel));
+202:             ph.textContent = cocok.length ? 'Pilih Bank Sampah Unit' : 'Belum ada BSU di wilayah ini';
+203:             bsuSelect.appendChild(ph);
+204:             cocok.forEach(o => {
+205:                 const c = o.cloneNode(true);
+206:                 c.selected = !!pilih && c.value === String(pilih);
+207:                 bsuSelect.appendChild(c);
+208:             });
+209:         }
+210: 
+211:         kelSelect.addEventListener('change', function () { isiBsu(this.value, null); });
+212: 
+213:         // Awal halaman / setelah validasi gagal: pulihkan pilihan sebelumnya.
+214:         const bsuLama = "{{ old('cms_user_id') }}";
+215:         let kelAwal = kelSelect.value;
+216:         if (!kelAwal && bsuLama) {
+217:             const o = semuaBsu.find(x => x.value === bsuLama);
+218:             if (o) { kelAwal = o.dataset.kelurahan; kelSelect.value = kelAwal; }
+219:         }
+220:         isiBsu(kelAwal, bsuLama);
+221:     }
+222: 
+223:     // Toggle Password
+224:     const togglePassword = document.getElementById('togglePassword');
+225:     const passwordInput = document.getElementById('password');
+226:     const eyeIcon = document.getElementById('eyeIcon');
+227: 
+228:     if (togglePassword && passwordInput && eyeIcon) {
+229:         togglePassword.addEventListener('click', function() {
+230:             const isPassword = passwordInput.getAttribute('type') === 'password';
+231:             passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+232:             eyeIcon.classList.toggle('bi-eye', !isPassword);
+233:             eyeIcon.classList.toggle('bi-eye-slash', isPassword);
+234:         });
+235:     }
+236: 
+237:     // Toggle Confirm Password
+238:     const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+239:     const confirmInput = document.getElementById('password_confirmation');
+240:     const eyeConfirmIcon = document.getElementById('eyeConfirmIcon');
+241: 
+242:     if (toggleConfirmPassword && confirmInput && eyeConfirmIcon) {
+243:         toggleConfirmPassword.addEventListener('click', function() {
+244:             const isPassword = confirmInput.getAttribute('type') === 'password';
+245:             confirmInput.setAttribute('type', isPassword ? 'text' : 'password');
+246:             eyeConfirmIcon.classList.toggle('bi-eye', !isPassword);
+247:             eyeConfirmIcon.classList.toggle('bi-eye-slash', isPassword);
+248:         });

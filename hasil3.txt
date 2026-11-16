@@ -1,0 +1,403 @@
+database\migrations\pembayaran\2026_10_24_000002_create_withdrawals_table.php
+database\migrations\pembayaran\2026_10_24_000005_register_withdrawals_cms_module.php
+app\Models\BSU.php:12:    protected $table = 'cms_users';
+app\Models\BSU.php:13:    protected $primaryKey = 'id'; 
+app\Models\BSU.php:15:    protected $keyType = 'int';
+app\Models\EducationalNews.php:12:    protected $table = 'education'; 
+app\Models\Kecamatan.php:13:    protected $table = 'kecamatans';
+app\Models\Kecamatan.php:14:    protected $fillable = ['nama_kecamatan'];
+app\Models\LaporanKeuangan.php:12:    protected $table = 'laporan_keuangan';
+app\Models\LaporanKeuangan.php:13:    protected $guarded = [];
+app\Models\PaymentWebhookLog.php:9:    protected $table = 'payment_webhook_logs';
+app\Models\PaymentWebhookLog.php:10:    protected $guarded = [];
+app\Models\PaymentWebhookLog.php:12:    protected $casts = ['token_valid' => 'boolean'];
+app\Models\Pengumuman.php:13:    protected $table = 'pengumuman';
+app\Models\Pengumuman.php:14:    protected $guarded = [];
+app\Models\Point.php:12:    protected $fillable = ['user_id', 'total_points'];
+app\Models\Reward.php:13:    protected $fillable = ['name', 'price', 'image', 'stock', 'description'];
+app\Models\Saldo.php:12:    protected $table = 'saldo';
+app\Models\Saldo.php:14:    protected $fillable = ['user_id', 'total_saldo'];
+app\Models\SaldoMutasi.php:9:    protected $table = 'saldo_mutasi';
+app\Models\SaldoMutasi.php:10:    protected $guarded = [];
+app\Models\SaldoMutasi.php:13:    protected $casts = [
+app\Models\Sampah.php:11:    protected $table = 'sampah';
+app\Models\Transaction.php:13:    protected $guarded = [];
+app\Models\TransactionsBsi.php:11:    protected $table = 'transactions_bsi'; // Nama tabel di database
+app\Models\TransactionsBsi.php:12:    protected $guarded = []; // Menyediakan proteksi mass assignment
+app\Models\TukarPoin.php:13:    protected $table = 'tukar_poins';
+app\Models\TukarPoin.php:14:    protected $guarded = [];
+app\Models\TukarSaldo.php:13:    protected $table = 'tukar_saldo';
+app\Models\TukarSaldo.php:14:    protected $guarded = [];
+app\Models\User.php:21:    protected $guarded = ['id'];
+app\Models\User.php:27:    protected $hidden = [
+app\Models\User.php:37:    protected $casts = [
+app\Models\Withdrawal.php:15:    protected $table = 'withdrawals';
+app\Models\Withdrawal.php:16:    protected $guarded = [];
+app\Models\Withdrawal.php:18:    protected $casts = [
+app\Console\Commands\BuatAkunBsi.php:22:        $privId = DB::table('cms_privileges')->where('name', 'BSI')->value('id');
+app\Console\Commands\BuatAkunBsi.php:35:        $akun = DB::table('cms_users')->where('email', $email)->first();
+app\Console\Commands\BuatAkunBsi.php:50:            DB::table('cms_users')->where('id', $akun->id)->update(['password' => $hash, 'updated_at' => now()]);
+app\Console\Commands\BuatAkunBsi.php:61:            DB::table('cms_users')->insert($data);
+app\Http\Controllers\AdminBsiHargaController.php:83:        $harga = (int) DB::table('bsi_harga')->where('id', $id)->value('harga');
+app\Http\Controllers\AdminBsiHargaController.php:114:            'judul' => $id ? DB::table('bsi_harga')->where('id', (int) $id)->value('nama') : null,
+app\Http\Controllers\AdminBsuUnitController.php:113:        if (!DB::table('cms_users')->where('id', $id)->where('id_cms_privileges', 4)->exists()) {
+app\Http\Controllers\AdminBsuUnitController.php:125:        $semua = DB::table('cms_users')->where('id_cms_privileges', 4)->orderBy('name')
+app\Http\Controllers\AdminBsuUnitController.php:149:        $b = DB::table('cms_users')->where('id', $id)->where('id_cms_privileges', 4)->first();
+app\Http\Controllers\AdminBsuUnitController.php:152:        DB::table('cms_users')->where('id', $id)->update(['name' => $baru, 'updated_at' => now()]);
+app\Http\Controllers\AdminHargaBsuController.php:44:        $master = DB::table('bsi_harga')->where('is_active', 1)->orderBy('kategori')->orderBy('nama')->get();
+app\Http\Controllers\AdminHargaBsuController.php:45:        $milik = DB::table('sampah')->where('admin_id', $adminId)->whereNotNull('bsi_harga_id')->get()->keyBy('bsi_harga_id');
+app\Http\Controllers\AdminHargaBsuController.php:55:        $belumTerhubung = DB::table('sampah')->where('admin_id', $adminId)->whereNull('bsi_harga_id')
+app\Http\Controllers\AdminHargaBsuController.php:58:        $perubahanBaru = DB::table('bsi_harga_riwayat as r')->join('bsi_harga as b', 'b.id', '=', 'r.bsi_harga_id')
+app\Http\Controllers\AdminJadwalController.php:89:        $rows = DB::table('jadwal_pengumpulan')->where('admin_id', CRUDBooster::myId())
+app\Http\Controllers\AdminJadwalController.php:109:            DB::table('jadwal_pengumpulan')->insert([
+app\Http\Controllers\AdminKamusController.php:34:        $items = DB::table('bsi_harga')->where('is_active', 1)
+app\Http\Controllers\AdminKamusController.php:40:            $milik = DB::table('sampah as s')->leftJoin('sampah_categories as c', 'c.id', '=', 's.category_id')
+app\Http\Controllers\AdminKamusController.php:52:            'istilah' => DB::table('kamus_istilah')->orderBy('istilah')->get(),
+app\Http\Controllers\AdminKasController.php:121:        $k = DB::table('kas_kategori')->where('id', $postdata['kategori_id'] ?? 0)->first();
+app\Http\Controllers\AdminKasController.php:154:        $nama = DB::table('cms_users')->where('id', $id)->value('name');
+app\Http\Controllers\AdminKasController.php:163:        $nama = DB::table('cms_users')->where('id', $id)->value('name');
+app\Http\Controllers\AdminKasKategoriController.php:70:        $k = DB::table('kas_kategori')->where('id', $id)->first();
+app\Http\Controllers\AdminKasKategoriController.php:74:        if ($hapus && DB::table('kas_umum')->where('kategori_id', $id)->whereNull('deleted_at')->exists()) {
+app\Http\Controllers\AdminLaporanKeuanganController.php:158:		$laporanQuery = DB::table('laporan_keuangan')
+app\Http\Controllers\AdminLaporanKompostingController.php:168:        $query   = DB::table('laporan_komposting');
+app\Http\Controllers\AdminLaporanKompostingController.php:190:        $chartData = DB::table('laporan_komposting')
+app\Http\Controllers\AdminRingkasanController.php:34:        $perubahan = DB::table('bsi_harga_riwayat as r')->join('bsi_harga as b', 'b.id', '=', 'r.bsi_harga_id')
+app\Http\Controllers\AdminRingkasanController.php:42:            $set = DB::table('transactions')->where('admin_id', $id)->whereDate('created_at', '>=', $awal)
+app\Http\Controllers\AdminRingkasanController.php:44:            $nasabah = DB::table('users')->where('cms_user_id', $id)->count();
+app\Http\Controllers\AdminRingkasanController.php:45:            $saldoNasabah = (int) DB::table('saldo')->join('users', 'users.id', '=', 'saldo.user_id')
+app\Http\Controllers\AdminRingkasanController.php:47:            $tukar = DB::table('tukar_saldo')->where('admin_id', $id)->whereDate('created_at', '>=', $awal)->count();
+app\Http\Controllers\AdminRingkasanController.php:48:            $jadwal = DB::table('jadwal_pengumpulan')->where('admin_id', $id)->where('tanggal', '>=', date('Y-m-d'))
+app\Http\Controllers\AdminRingkasanController.php:50:            $harga = DB::table('sampah')->where('admin_id', $id)->whereNotNull('bsi_harga_id')->count();
+app\Http\Controllers\AdminRingkasanController.php:60:            'jmlJenis' => DB::table('bsi_harga')->where('is_active', 1)->count(),
+app\Http\Controllers\AdminRingkasanController.php:61:            'jmlBsu' => DB::table('cms_users')->where('id_cms_privileges', 4)->count(),
+app\Http\Controllers\AdminRingkasanController.php:62:            'jmlNasabah' => DB::table('users')->count(),
+app\Http\Controllers\AdminRingkasanController.php:63:            'terhubung' => DB::table('sampah')->whereNotNull('bsi_harga_id')->distinct()->count('admin_id'),
+app\Http\Controllers\AdminSaldoController.php:278:	        $row = DB::table('saldo')->where('id', $id)->first();
+app\Http\Controllers\AdminSaldoController.php:297:	        $this->saldoSebelumEdit = (int) DB::table('saldo')->where('id', $id)->value('total_saldo');
+app\Http\Controllers\AdminSaldoController.php:308:	        $row = DB::table('saldo')->where('id', $id)->first();
+app\Http\Controllers\AdminSaldoController.php:325:	        $row = DB::table('saldo')->where('id', $id)->first();
+app\Http\Controllers\AdminSetoranMassalController.php:42:        $sampah = DB::table('sampah as s')->leftJoin('sampah_categories as c', 'c.id', '=', 's.category_id')
+app\Http\Controllers\AdminSetoranMassalController.php:90:        $base = DB::table('transactions as t')->join('users as u', 'u.id', '=', 't.user_id')
+app\Http\Controllers\AdminTransactions37Controller.php:324:		$data['transactions'] = DB::table('transactions')->paginate(10);
+app\Http\Controllers\AdminTransactionsBsiController.php:162:            $profitSumQuery = DB::table('transactions_bsi')
+app\Http\Controllers\AdminTransactionsBsiController.php:212:            $buySumQuery = DB::table('transactions')
+app\Http\Controllers\AdminTransactionsController.php:184:            $buySumQuery = DB::table('transactions')
+app\Http\Controllers\AdminTransactionsController.php:453:	        $sampah = DB::table('sampah')->where('id', $postdata['sampah_id'])->first();
+app\Http\Controllers\AdminTukarSaldoController.php:171:	        $queryTukarSaldo = DB::table('tukar_saldo')
+app\Http\Controllers\Concerns\CekPeran.php:16:            $id = (int) DB::table('cms_privileges')->where('name', 'BSI')->value('id');
+app\Http\Controllers\Concerns\CekPeran.php:58:        $pemilik = DB::table($table)->where('id', $id)->value($kolom);
+app\Http\Controllers\UserApp\HistoryController.php:23:        $admin = DB::table('cms_users')->where('id', $transaction->admin_id)->first();
+app\Http\Controllers\UserApp\SampahController.php:32:        $istilah = DB::table('kamus_istilah')->orderBy('istilah')->get(['istilah', 'penjelasan']);
+app\Http\Controllers\UserApp\SampahController.php:43:        $admin = DB::table('cms_users')->where('id', $sampah->admin_id)->first();
+app\Http\Controllers\UserApp\TukarPoinController.php:64:        $admin = DB::table('cms_users')->where('id', $tukar_poin->admin_id)->first();
+app\Http\Controllers\UserApp\TukarSaldoController.php:65:        $admin = DB::table('cms_users')->where('id', $tukar_saldo->admin_id)->first();
+app\Services\HargaService.php:55:            $item = DB::table('bsi_harga')->where('id', $bsiHargaId)->lockForUpdate()->first();
+app\Services\HargaService.php:64:            DB::table('bsi_harga')->where('id', $item->id)->update([
+app\Services\HargaService.php:69:            $rows = DB::table('sampah')->where('bsi_harga_id', $item->id)->where('auto_sync', 1)
+app\Services\HargaService.php:75:                    DB::table('sampah')->where('id', $s->id)->update(['price_per_kg' => $baru, 'updated_at' => now()]);
+app\Services\HargaService.php:95:            $s = DB::table('sampah')->where('id', $sampahId)->where('admin_id', $adminId)->lockForUpdate()->first();
+app\Services\HargaService.php:99:            $bsi = DB::table('bsi_harga')->where('id', $s->bsi_harga_id)->first();
+app\Services\HargaService.php:103:            DB::table('sampah')->where('id', $s->id)->update([
+app\Services\HargaService.php:121:            $bsi = DB::table('bsi_harga')->where('id', $bsiHargaId)->where('is_active', 1)->first();
+app\Services\HargaService.php:125:            if (DB::table('sampah')->where('admin_id', $adminId)->where('bsi_harga_id', $bsi->id)->exists()) {
+app\Services\HargaService.php:130:            $id = DB::table('sampah')->insertGetId([
+app\Services\HargaService.php:154:        $id = DB::table('sampah_categories')->where('admin_id', $adminId)->whereRaw('LOWER(name) = ?', [mb_strtolower($nama)])->value('id');
+app\Services\HargaService.php:156:            $id = DB::table('sampah_categories')->insertGetId([
+app\Services\HargaService.php:171:            $s = DB::table('sampah')->where('id', $sampahId)->where('admin_id', $adminId)->lockForUpdate()->first();
+app\Services\HargaService.php:172:            $bsi = DB::table('bsi_harga')->where('id', $bsiHargaId)->first();
+app\Services\HargaService.php:176:            if (DB::table('sampah')->where('admin_id', $adminId)->where('bsi_harga_id', $bsi->id)->where('id', '!=', $s->id)->exists()) {
+app\Services\HargaService.php:180:            DB::table('sampah')->where('id', $s->id)->update([
+app\Services\HargaService.php:190:        return DB::table('sampah')->where('id', $sampahId)->where('admin_id', $adminId)->update([
+app\Services\HargaService.php:197:        $q = DB::table('bsi_harga_riwayat as r')
+app\Services\HargaService.php:210:        return DB::table('sampah_harga_riwayat as r')
+app\Services\HargaService.php:220:        DB::table('bsi_harga_riwayat')->insert([
+app\Services\HargaService.php:233:        DB::table('sampah_harga_riwayat')->insert([
+app\Services\HargaService.php:249:            DB::table('cms_notifications')->insert([
+app\Services\KasService.php:14:        $q = DB::table('kas_umum')->where('admin_id', $adminId)->whereNull('deleted_at');
+app\Services\KasService.php:51:        $data = DB::table('kas_umum as k')
+app\Services\KasService.php:113:        $kategoriId = DB::table('kas_kategori')->whereNull('admin_id')->where('tipe', 'masuk')
+app\Services\KasService.php:116:        $sudah = DB::table('kas_umum')->where('admin_id', $adminId)->where('ref_type', 'transactions_bsi')
+app\Services\KasService.php:119:        $rows = DB::table('transactions_bsi as t')
+app\Services\KasService.php:131:            DB::table('kas_umum')->insert([
+app\Services\RingkasanNasabah.php:14:        $masuk = DB::table('transactions')->where('user_id', $user->id)->where('created_at', '>=', $awal)
+app\Services\RingkasanNasabah.php:17:        $keluar = (int) DB::table('saldo_mutasi')->where('user_id', $user->id)->where('type', 'debit')
+app\Services\RingkasanNasabah.php:20:        $harga = DB::table('sampah_harga_riwayat as r')->join('sampah as s', 's.id', '=', 'r.sampah_id')
+app\Services\RingkasanNasabah.php:26:        $jadwal = DB::table('jadwal_pengumpulan')->where('admin_id', $user->cms_user_id)
+app\Services\SetoranService.php:32:        $query = DB::table('users')->where('cms_user_id', $adminId)
+app\Services\SetoranService.php:50:        $tgl = DB::table('transactions')->where('admin_id', $adminId)->where('user_id', $userId)
+app\Services\SetoranService.php:55:        $rows = DB::table('transactions')->where('admin_id', $adminId)->where('user_id', $userId)
+app\Services\SetoranService.php:59:        $aktif = DB::table('sampah')->where('admin_id', $adminId)->pluck('id')->all();
+app\Services\SetoranService.php:114:                $user = DB::table('users')->where('id', $userId)->where('cms_user_id', $adminId)->first();
+app\Services\SetoranService.php:118:                $sampah = DB::table('sampah')->where('id', $sampahId)->where('admin_id', $adminId)->first();
+app\Services\SetoranService.php:126:                $id = DB::table('transactions')->insertGetId([
+app\Services\SetoranService.php:135:                $p = DB::table('points')->where('user_id', $userId)->lockForUpdate()->first();
+app\Services\SetoranService.php:137:                    DB::table('points')->where('id', $p->id)->update([
+app\Services\SetoranService.php:141:                    DB::table('points')->insert([
+BSU.php
+EducationalNews.php
+Kecamatan.php
+LaporanKeuangan.php
+PaymentWebhookLog.php
+Pengumuman.php
+Point.php
+Reward.php
+Saldo.php
+SaldoMutasi.php
+Sampah.php
+SampahCategory.php
+Transaction.php
+TransactionsBsi.php
+TukarPoin.php
+TukarSaldo.php
+User.php
+Withdrawal.php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Withdrawal extends Model
+{
+    const PENDING = 'pending';       // saldo sudah dipotong, payout belum dikirim
+    const PROCESSING = 'processing'; // diterima Xendit, menunggu hasil
+    const SUCCESS = 'success';
+    const FAILED = 'failed';         // gagal, saldo sudah dikembalikan
+    const REVIEW = 'review';         // hasil tidak pasti, butuh pengecekan manual
+
+    protected $table = 'withdrawals';
+    protected $guarded = [];
+
+    protected $casts = [
+        'amount'       => 'integer',
+        'fee'          => 'integer',
+        'net_amount'   => 'integer',
+        'completed_at' => 'datetime',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function isFinal()
+    {
+        return in_array($this->status, [self::SUCCESS, self::FAILED], true);
+    }
+
+    public function channelLabel()
+    {
+        $c = config('withdrawal.channels.' . $this->channel_code);
+        return $c ? $c['label'] : $this->channel_code;
+    }
+
+    /** Nomor tujuan disamarkan: 0812****7890 */
+    public function maskedAccount()
+    {
+        $n = (string) $this->account_number;
+        $len = strlen($n);
+        if ($len <= 6) {
+            return str_repeat('*', $len);
+        }
+        return substr($n, 0, 4) . str_repeat('*', $len - 8) . substr($n, -4);
+    }
+
+    /** Teks status untuk nasabah (tidak membocorkan detail internal). */
+    public function statusLabel()
+    {
+        switch ($this->status) {
+            case self::PENDING:    return 'Menunggu diproses';
+            case self::PROCESSING: return 'Sedang diproses';
+            case self::SUCCESS:    return 'Berhasil';
+            case self::FAILED:     return 'Gagal, saldo dikembalikan';
+            case self::REVIEW:     return 'Sedang diverifikasi';
+        }
+        return ucfirst((string) $this->status);
+    }
+}
+<?php
+
+namespace App\Http\Controllers\UserApp;
+
+use App\Exceptions\WithdrawalException;
+use App\Http\Controllers\Controller;
+use App\Jobs\SendPayoutJob;
+use App\Models\Saldo;
+use App\Models\Withdrawal;
+use App\Services\WithdrawalService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+
+class WithdrawalController extends Controller
+{
+    private $service;
+
+    public function __construct(WithdrawalService $service)
+    {
+        $this->service = $service;
+    }
+
+    /** Form pengajuan */
+    public function index()
+    {
+        $user = auth()->user();
+        $last = Withdrawal::where('user_id', $user->id)->where('status', '!=', Withdrawal::FAILED)->latest('id')->first();
+
+        return view('user-app.tarik-saldo.index', [
+            'saldo'    => Saldo::where('user_id', $user->id)->first(),
+            'channels' => config('withdrawal.channels'),
+            'last'     => $last,
+            'enabled'  => $this->service->available(),
+        ]);
+    }
+
+    /** Halaman konfirmasi (belum memotong saldo) */
+    public function confirm(Request $request)
+    {
+        $data = $this->validated($request);
+        if ($data instanceof \Illuminate\Http\RedirectResponse) {
+            return $data;
+        }
+
+        $channel = config('withdrawal.channels.' . $data['channel_code']);
+        $fee = (int) config('withdrawal.fee.' . $channel['type'], 0);
+        $saldo = Saldo::where('user_id', auth()->id())->first();
+        $balance = $saldo ? (int) $saldo->total_saldo : 0;
+
+        $token = Str::random(40);
+        session()->put('withdrawal_token', $token);
+
+        return view('user-app.tarik-saldo.konfirmasi', [
+            'data'    => $data,
+            'channel' => $channel,
+            'fee'     => $fee,
+            'balance' => $balance,
+            'token'   => $token,
+        ]);
+    }
+
+    /** Eksekusi: potong saldo lalu antrikan pengiriman */
+    public function store(Request $request)
+    {
+        $expected = session()->pull('withdrawal_token');
+        $given = (string) $request->input('submit_token');
+        if (!$expected || !hash_equals($expected, $given)) {
+            // Klik ganda / halaman lama: jangan buat pengajuan baru.
+            return redirect()->route('tarikSaldo.riwayat')
+                ->with('error', 'Pengajuan ini sudah diproses atau sesinya berakhir. Cek riwayat penarikan Anda.');
+        }
+
+        $data = $this->validated($request);
+        if ($data instanceof \Illuminate\Http\RedirectResponse) {
+            return $data;
+        }
+
+        try {
+            $w = $this->service->create(auth()->user(), $data, $request->ip());
+        } catch (WithdrawalException $e) {
+            return redirect()->route('tarikSaldo.index')->withInput()->with('error', $e->getMessage());
+        }
+
+        try {
+            SendPayoutJob::dispatch($w->id);
+        } catch (\Throwable $e) {
+            // Saldo sudah tercatat; withdrawal tetap "pending" dan akan dikirim ulang oleh withdrawals:reconcile.
+            Log::error('Gagal mengantrikan SendPayoutJob', ['withdrawal' => $w->id, 'error' => $e->getMessage()]);
+        }
+
+        return redirect()->route('tarikSaldo.show', $w->id);
+    }
+
+    public function show($id)
+    {
+        $w = Withdrawal::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+        return view('user-app.tarik-saldo.status', ['w' => $w]);
+    }
+
+    /** Dipakai halaman status untuk polling ringan */
+    public function status($id)
+    {
+        $w = Withdrawal::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+        return response()->json(['status' => $w->status, 'label' => $w->statusLabel(), 'final' => $w->isFinal()]);
+    }
+
+    public function riwayat()
+    {
+        $items = Withdrawal::where('user_id', auth()->id())->latest('id')->paginate(15);
+        return view('user-app.tarik-saldo.riwayat', ['items' => $items]);
+    }
+
+    /**
+     * Validasi input + normalisasi nomor tujuan.
+     * Mengembalikan array data bersih, atau RedirectResponse bila tidak valid.
+     */
+    private function validated(Request $request)
+    {
+        $channels = config('withdrawal.channels');
+
+        $v = Validator::make($request->all(), [
+            'channel_code'   => 'required|in:' . implode(',', array_keys($channels)),
+            'account_number' => 'required|string|max:30',
+            'account_name'   => ['required', 'string', 'min:3', 'max:60', 'regex:/^[\pL\s\.\'\-]+$/u'],
+            'amount'         => 'required|integer|min:1',
+        ], [
+            'channel_code.required'   => 'Pilih tujuan penarikan.',
+            'channel_code.in'         => 'Tujuan penarikan tidak didukung.',
+            'account_number.required' => 'Nomor tujuan wajib diisi.',
+            'account_name.required'   => 'Nama pemilik rekening/akun wajib diisi.',
+            'account_name.regex'      => 'Nama hanya boleh berisi huruf, spasi, titik, apostrof, dan tanda hubung.',
+            'amount.required'         => 'Nominal wajib diisi.',
+            'amount.integer'          => 'Nominal harus berupa angka bulat.',
+        ]);
+
+        $v->after(function ($validator) use ($request, $channels) {
+            $code = $request->input('channel_code');
+            if (!isset($channels[$code])) {
+                return;
+            }
+            $number = preg_replace('/[\s\-]/', '', (string) $request->input('account_number'));
+            if ($channels[$code]['type'] === 'ewallet') {
+                if (!preg_match('/^(\+62|62|0)8[0-9]{8,12}$/', $number)) {
+                    $validator->errors()->add('account_number', 'Nomor e-wallet tidak valid (contoh: 081234567890).');
+                }
+            } elseif (!preg_match('/^[0-9]{6,20}$/', $number)) {
+                $validator->errors()->add('account_number', 'Nomor rekening harus berupa 6-20 digit angka.');
+            }
+        });
+
+        if ($v->fails()) {
+            return redirect()->route('tarikSaldo.index')->withErrors($v)->withInput();
+        }
+
+        $data = $v->validated();
+        $number = preg_replace('/[\s\-]/', '', $data['account_number']);
+        if ($channels[$data['channel_code']]['type'] === 'ewallet') {
+            $number = preg_replace('/^(\+62|62)/', '0', $number); // Xendit: format 08xxxxxxxxxx
+        }
+        $data['account_number'] = $number;
+        $data['account_name'] = trim(preg_replace('/\s+/', ' ', $data['account_name']));
+        $data['amount'] = (int) $data['amount'];
+
+        return $data;
+    }
+}
+Field	Type	Null	Key	Default	Extra
+id	bigint unsigned	NO	PRI	NULL	auto_increment
+user_id	bigint unsigned	YES	MUL	NULL	
+admin_id	int unsigned	YES	MUL	NULL	
+reward_id	bigint unsigned	YES	MUL	NULL	
+quantity	int	NO		NULL	
+total_price	int	NO		NULL	
+bukti_foto	text	YES		NULL	
+status	varchar(100)	NO		NULL	
+created_at	timestamp	NO		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+updated_at	timestamp	NO		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+kecamatan_id	bigint unsigned	YES	MUL	NULL	
+Field	Type	Null	Key	Default	Extra
+id	bigint	NO	PRI	NULL	auto_increment
+user_id	bigint unsigned	YES	UNI	NULL	
+total_saldo	int	NO		NULL	
+created_at	timestamp	NO		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+updated_at	timestamp	NO		CURRENT_TIMESTAMP	DEFAULT_GENERATED

@@ -1,0 +1,258 @@
+Tabel: education
+Kolom: id, judul, url, gambar, updated_at, created_at
+Contoh baris pertama (dipotong):
+ - id = 2
+ - judul = Viral Warga Buang Sampah ke Kereta Barang, KAI: Terancam Denda Rp 15 J...
+ - url = https://finance.detik.com/berita-ekonomi-bisnis/d-7468198/viral-warga-...
+ - gambar = uploads/1/2024-08/berita2.jpeg
+ - updated_at = 2024-08-11 05:23:27
+ - created_at = 2024-08-08 14:13:23
+
+===== CONTROLLER (C:\laragon\www\bank_imam-main/app/Http/Controllers/UserApp/EducationalNewsController.php) =====
+1: <?php
+2: 
+3: namespace App\Http\Controllers\UserApp;
+4: 
+5: use App\Models\EducationalNews;
+6: use Carbon\Carbon;
+7: use Illuminate\Http\Request;
+8: use Illuminate\Support\Facades\Auth;
+9: use App\Http\Controllers\Controller;
+10: 
+11: class EducationalNewsController extends Controller
+12: {
+13:  public function index()
+14:  {
+15:  // Mengambil semua data berita edukasi dan mengurutkannya berdasarkan waktu updated_at
+16:  $educationalNews = EducationalNews::orderBy('updated_at', 'desc')->get();
+17: 
+18:  // Proses untuk mengekstrak domain dan menghitung waktu yang telah berlalu
+19:  $educationalNews->transform(function ($news) {
+20:  $news->domain = $this->getHostFromUrl($news->url); // Menambahkan properti 'domain' ke dalam objek berita
+21: 
+22:  // Menghitung waktu yang telah berlalu
+23:  $news->time_elapsed = Carbon::parse($news->updated_at)->diffForHumans();
+24: 
+25:  return $news;
+26:  });
+27: 
+28:  // Kirim data ke view
+29:  return view('user-app.edukasi', compact('educationalNews'));
+30:  }
+31:  // Fungsi helper untuk mengambil domain utama dari URL
+32:  private function getHostFromUrl($url)
+33:  {
+34:  if (empty($url) || trim($url) === '') {
+35:  return 'EcoBuana Edukasi';
+36:  }
+37:  if (!preg_match('~^(?:f|ht)tps?://~i', $url)) {
+38:  $url = 'https://' . ltrim($url, '/');
+39:  }
+40:  $parsedUrl = parse_url($url);
+41:  $host = $parsedUrl['host'] ?? 'EcoBuana Edukasi';
+42:  if (empty($host) || $host === 'undefined') {
+43:  return 'EcoBuana Edukasi';
+44:  }
+45:  return preg_replace('/^www\./', '', $host);
+46:  }
+47: }
+48: 
+
+===== MODEL (C:\laragon\www\bank_imam-main/app/Models/EducationalNews.php) =====
+1: <?php
+2: 
+3: namespace App\Models;
+4: 
+5: use Illuminate\Database\Eloquent\Factories\HasFactory;
+6: use Illuminate\Database\Eloquent\Model;
+7: 
+8: class EducationalNews extends Model
+9: {
+10:  use HasFactory;
+11: 
+12:  protected $table = 'education';
+13: 
+14:  public function news()
+15:  {
+16:  return $this->hasMany(News::class);
+17:  }
+18: }
+19: 
+20: ?>
+
+===== VIEW user-app.edukasi (C:\laragon\www\bank_imam-main/resources/views/user-app/edukasi.blade.php) =====
+1: @extends('layout.main')
+2: 
+3: @section('title', 'Ruang Edukasi | EcoBuana')
+4: 
+5: @section('content')
+6: {{-- ======================== HEADER EDUKASI ======================== --}}
+7: <header style="background: linear-gradient(150deg, #00c96e 0%, #005c2e 100%); position:relative; overflow:hidden; padding-bottom: 34px;">
+8:  {{-- Decorative blobs --}}
+9:  <div style="position:absolute; top:-35px; right:-35px; width:140px; height:140px; background:rgba(255,255,255,0.08); border-radius:50%;"></div>
+10:  <div style="position:absolute; bottom:0; left:-25px; width:110px; height:110px; background:rgba(255,255,255,0.05); border-radius:50%;"></div>
+11: 
+12:  <div class="px-4 pt-4 pb-2 d-flex align-items-center gap-3" style="position:relative; z-index:1;">
+13:  <a href="{{ url('dashboard') }}" class="text-white text-decoration-none">
+14:  <div style="width:38px; height:38px; background:rgba(255,255,255,0.2); border-radius:12px; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(6px); transition:transform 0....
+15:  onmouseover="this.style.transform='scale(1.08)'"
+16:  onmouseout="this.style.transform='scale(1)'">
+17:  <i class="bi bi-arrow-left" style="font-size:18px;"></i>
+18:  </div>
+19:  </a>
+20:  <div class="flex-grow-1">
+21:  <p class="m-0 text-white" style="font-size:11px; opacity:0.85;">Pusat Literasi & Berita</p>
+22:  <h5 class="m-0 text-white fw-bold" style="font-size:18px; letter-spacing:0.3px;">Ruang Edukasi 📚</h5>
+23:  </div>
+24:  <div style="width:38px; height:38px; background:rgba(255,255,255,0.15); border-radius:12px; display:flex; align-items:center; justify-content:center;">
+25:  <i class="bi bi-book-half text-white" style="font-size:18px;"></i>
+26:  </div>
+27:  </div>
+28: 
+29:  {{-- Wave SVG --}}
+30:  <svg viewBox="0 0 428 35" xmlns="http://www.w3.org/2000/svg" style="position:absolute; bottom:-1px; left:0; width:100%;">
+31:  <path d="M0,18 C100,35 328,0 428,18 L428,35 L0,35 Z" fill="#f4f6f8"/>
+32:  </svg>
+33: </header>
+34: 
+35: {{-- ======================== MAIN CONTENT ======================== --}}
+36: <main id="education-page" class="main-container" style="background:#f4f6f8; min-height: calc(100vh - 120px); padding-bottom: 95px;">
+37:  <div class="container-body px-3 pt-2">
+38: 
+39:  {{-- 1. HERO BANNER CARD --}}
+40:  <div class="rounded-4 p-3 mb-3 text-white position-relative overflow-hidden"
+41:  style="background: linear-gradient(135deg, #00c96e 0%, #006633 100%); box-shadow: 0 6px 20px rgba(0,160,86,0.25);">
+42:  {{-- Decorative circles --}}
+43:  <div style="position:absolute; top:-20px; right:-20px; width:100px; height:100px; background:rgba(255,255,255,0.08); border-radius:50%;"></div>
+44:  <div style="position:absolute; bottom:-30px; left:40px; width:80px; height:80px; background:rgba(255,255,255,0.05); border-radius:50%;"></div>
+45: 
+46:  <div class="d-flex align-items-center justify-content-between position-relative" style="z-index:1;">
+47:  <div style="max-width: 68%;">
+48:  <span class="badge rounded-pill px-2 py-1 mb-2"
+49:  style="background:rgba(255,255,255,0.22); font-size:10px; font-weight:600; backdrop-filter:blur(4px);">
+50:  🌱 Komunitas Hijau
+51:  </span>
+52:  <h5 class="fw-bold mb-1" style="font-size:16px; line-height:1.3; letter-spacing:-0.3px;">
+53:  Ikuti Kegiatan Sosial di Sekitarmu!
+54:  </h5>
+55:  <p class="m-0" style="font-size:11px; opacity:0.9; line-height:1.4;">
+56:  Tingkatkan wawasan daur ulang sampah & kepedulian lingkungan.
+57:  </p>
+58:  </div>
+59:  <div class="flex-shrink-0 text-end">
+60:  <img src="{{ asset('images/banner-edu.png') }}" alt="Banner Edukasi"
+61:  onerror="this.onerror=null; this.src='{{ asset('images/waste-management.jpg') }}';"
+62:  style="width: 82px; height: auto; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.15));">
+63:  </div>
+64:  </div>
+65:  </div>
+66: 
+67:  {{-- 2. SECTION TITLE --}}
+68:  <div class="d-flex align-items-center justify-content-between mb-3 px-1">
+69:  <div class="d-flex align-items-center gap-2">
+70:  <div style="width:4px; height:18px; background:#00a056; border-radius:4px;"></div>
+71:  <h6 class="fw-bold m-0" style="font-size:15px; color:#1a1a2e;">Kabar & Artikel Terkini</h6>
+72:  </div>
+73:  <span class="badge rounded-pill" style="background:#e6f7ef; color:#00a056; font-size:11px; font-weight:600; padding:4px 10px;">
+74:  {{ count($educationalNews) }} Berita
+75:  </span>
+76:  </div>
+77: 
+78:  {{-- 3. NEWS FEED LIST --}}
+79:  @if(isset($educationalNews) && count($educationalNews) > 0)
+80:  <div class="d-flex flex-column gap-2">
+81:  @foreach($educationalNews as $news)
+82:  @php
+83:  $rawImg = $news->gambar ?? '';
+84:  if (filter_var($rawImg, FILTER_VALIDATE_URL)) {
+85:  $imgUrl = $rawImg;
+86:  } elseif (!empty($rawImg)) {
+87:  $imgUrl = asset($rawImg);
+88:  } else {
+89:  $imgUrl = asset('images/waste-management.jpg');
+90:  }
+91:  $domainName = (!empty($news->domain) && $news->domain !== 'undefined') ? $news->domain : 'EcoBuana Edukasi';
+92:  @endphp
+93:  <a href="{{ $news->url }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none d-block">
+94:  <div class="rounded-4 p-3 bg-white news-card"
+95:  style="box-shadow: 0 3px 14px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; transition: all 0.22s ease;">
+96:  <div class="d-flex gap-3 align-items-center">
+97:  {{-- Thumbnail Image --}}
+98:  <div class="position-relative flex-shrink-0"
+99:  style="width: 90px; height: 90px; border-radius: 14px; overflow: hidden; background: #eef2f6;">
+100:  <img src="{{ $imgUrl }}"
+101:  alt="{{ $news->judul }}"
+102:  onerror="this.onerror=null; this.src='{{ asset('images/waste-management.jpg') }}';"
+103:  style="width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease;">
+104:  </div>
+105: 
+106:  {{-- Content Column --}}
+107:  <div class="flex-grow-1 overflow-hidden d-flex flex-column justify-content-between" style="min-height: 90px;">
+108:  <div>
+109:  <h6 class="fw-bold m-0 mb-1 news-title"
+110:  style="font-size: 13.5px; color: #1a1a2e; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">
+111:  {{ $news->judul }}
+112:  </h6>
+113:  </div>
+114: 
+115:  {{-- Meta Info (Domain, Time, External Icon) --}}
+116:  <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between" style="border-color: #f8fafc !important;">
+117:  <div class="d-flex align-items-center gap-2">
+118:  <span class="d-inline-flex align-items-center text-truncate"
+119:  style="font-size: 11px; color: #008744; font-weight: 600; max-width: 140px;">
+120:  <i class="bi bi-globe2 me-1" style="font-size: 10px;"></i>
+121:  {{ $domainName }}
+122:  </span>
+123:  <span style="font-size: 10px; color: #cbd5e1;">•</span>
+124:  <span style="font-size: 11px; color: #94a3b8;">
+125:  {{ $news->time_elapsed }}
+126:  </span>
+127:  </div>
+128:  <div style="width: 24px; height: 24px; background: #f8fafc; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+129:  <i class="bi bi-box-arrow-up-right" style="font-size: 11px;"></i>
+130:  </div>
+131:  </div>
+132:  </div>
+133:  </div>
+134:  </div>
+135:  </a>
+136:  @endforeach
+137:  </div>
+138:  @else
+139:  {{-- Empty State --}}
+140:  <div class="bg-white rounded-4 p-4 text-center mt-3" style="box-shadow: 0 2px 14px rgba(0,0,0,0.05); border: 1px dashed #cbd5e1;">
+141:  <div style="width:60px; height:60px; background:#e6f7ef; color:#00a056; border-radius:50%; display:flex; align-items:center; justify-content:center; margin: 0 auto 12px; font-size:26px;">
+142:  <i class="bi bi-journal-x"></i>
+143:  </div>
+144:  <h6 class="fw-bold mb-1" style="color:#1a1a2e; font-size:15px;">Belum Ada Kabar Edukasi</h6>
+145:  <p class="mb-3" style="font-size:12px; color:#64748b; line-height:1.5;">
+146:  Kabar dan artikel edukasi seputar pengelolaan sampah akan segera hadir di sini.
+147:  </p>
+148:  <a href="{{ url('/dashboard') }}" class="btn btn-primary-custom px-4 py-2 rounded-pill fw-bold text-decoration-none" style="font-size:12px;">
+149:  <i class="bi bi-house me-1"></i> Kembali ke Beranda
+150:  </a>
+151:  </div>
+152:  @endif
+153: 
+154:  </div>
+155: </main>
+156: 
+157: <style>
+158:  .news-card:hover {
+159:  transform: translateY(-2px);
+160:  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+161:  border-color: #dcfce7 !important;
+162:  }
+163:  .news-card:hover .news-title {
+164:  color: #008744 !important;
+165:  }
+166:  .news-card:hover img {
+167:  transform: scale(1.05);
+168:  }
+169: </style>
+170: @endsection
+
+===== RUTE EDUKASI di routes/web.php =====
+14: use App\Http\Controllers\UserApp\EducationalNewsController;
+86: //Route::resource('educational-news', 'EducationalNewsController');
+87: Route::get('/edukasi', [EducationalNewsController::class, 'index'])->name('edukasi.index');

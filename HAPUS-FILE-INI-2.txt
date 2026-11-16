@@ -1,0 +1,5 @@
+HAPUS file ini dari proyek Anda (selain daftar lama di HAPUS-FILE-INI.txt):
+app/Http/Controllers/AdminJadwalController.php
+resources/views/admin/jadwal_kalender.blade.php
+resources/views/admin/ringkasan_bsu.blade.php
+resources/views/admin/ringkasan_pusat.blade.php

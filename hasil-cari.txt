@@ -1,0 +1,126 @@
+===== TABEL WILAYAH DI DATABASE =====
+
+kelurahans (6 baris)
+  kolom: id, nama_kelurahan, created_at, updated_at, deleted_at
+    id=1 | nama_kelurahan=Meruya Selatan
+    id=2 | nama_kelurahan=Joglo
+    id=3 | nama_kelurahan=Kembangan Selatan
+    id=4 | nama_kelurahan=Kembangan Utara
+    id=5 | nama_kelurahan=Meruya Utara
+    id=6 | nama_kelurahan=Srengseng
+
+===== FILE YANG MEMUAT DAFTAR / FORM KELURAHAN =====
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminCmsUsersController.php:29  $this->col[] = array("label"=>"Kelurahan","name"=>"kelurahan_id","join"=>"kelurahans,nama_kelurahan");
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminCmsUsersController.php:52  "name" => "kelurahan_id",
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminCmsUsersController.php:54  "datatable" => "kelurahans,nama_kelurahan",
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminCmsUsersController.php:81  $('#form-group-kelurahan_id').slideDown(200);
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminCmsUsersController.php:82  $('#kelurahan_id').prop('required', true);
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminCmsUsersController.php:83  if ($('#form-group-kelurahan_id label .text-danger').length === 0) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminCmsUsersController.php:84  $('#form-group-kelurahan_id label').append(' <span class=\"text-danger\" title=\"Field ini wajib diisi\">*</span>');
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminCmsUsersController.php:87  $('#form-group-kelurahan_id').slideUp(200);
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminCmsUsersController.php:88  $('#kelurahan_id').prop('required', false).val('');
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminCmsUsersController.php:89  $('#form-group-kelurahan_id label .text-danger').remove();
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminCmsUsersController.php:111  $this->hide_form 	  = ['id_cms_privileges', 'kelurahan_id'];
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminCmsUsersController.php:123  $postdata['kelurahan_id'] = null;
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminCmsUsersController.php:132  $postdata['kelurahan_id'] = null;
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminKelurahansController.php:9  class AdminKelurahansController extends CBController {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminKelurahansController.php:29  $this->table               = "kelurahans";
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminLaporanKeuanganController.php:40  $this->col[] = ["label" => "Kelurahan", "name" => "kelurahan_id", "join" => "kelurahans,nama_kelurahan"];
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminLaporanKeuanganController.php:161  ->leftJoin('kelurahans', 'laporan_keuangan.kelurahan_id', '=', 'kelurahans.id');
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminLaporanKeuanganController.php:169  if (!empty($filterColumn['kelurahans.nama_kelurahan']['value'])) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminLaporanKeuanganController.php:170  $laporanQuery->where('kelurahans.nama_kelurahan', 'like', '%' . $filterColumn['kelurahans.nama_kelurahan']['value'] . '%');
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminLaporanKeuanganController.php:173  if (!empty($filterColumn['laporan_keuangan.kelurahan_id']['value'])) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminLaporanKeuanganController.php:174  $laporanQuery->where('laporan_keuangan.kelurahan_id', '=', $filterColumn['laporan_keuangan.kelurahan_id']['value']);
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminLaporanKeuanganController.php:404  if ($bsu && !empty($bsu->kelurahan_id)) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminLaporanKeuanganController.php:405  $postdata['kelurahan_id'] = $bsu->kelurahan_id;
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminLaporanKeuanganController.php:435  if ($bsu && !empty($bsu->kelurahan_id)) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminLaporanKeuanganController.php:436  $postdata['kelurahan_id'] = $bsu->kelurahan_id;
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsBsiController.php:38  $this->col[] = ["label"=>"Kelurahan","name"=>"kelurahan_id","join"=>"kelurahans,nama_kelurahan"];
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsBsiController.php:163  ->leftJoin('kelurahans', 'transactions_bsi.kelurahan_id', '=', 'kelurahans.id')
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsBsiController.php:177  if (!empty($filterColumn['kelurahans.nama_kelurahan']['value'])) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsBsiController.php:178  $profitSumQuery->where('kelurahans.nama_kelurahan', 'like', '%' . $filterColumn['kelurahans.nama_kelurahan']['value'] . '%');
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsBsiController.php:180  if (!empty($filterColumn['transactions_bsi.kelurahan_id']['value'])) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsBsiController.php:181  $profitSumQuery->where('transactions_bsi.kelurahan_id', '=', $filterColumn['transactions_bsi.kelurahan_id']['value']);
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsBsiController.php:223  ->leftJoin('kelurahans', 'transactions.kelurahan_id', '=', 'kelurahans.id');
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsBsiController.php:231  if (!empty($filterColumn['kelurahans.nama_kelurahan']['value'])) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsBsiController.php:232  $buySumQuery->where('kelurahans.nama_kelurahan', 'like', '%' . $filterColumn['kelurahans.nama_kelurahan']['value'] . '%');
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsBsiController.php:234  if (!empty($filterColumn['transactions_bsi.kelurahan_id']['value'])) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsBsiController.php:235  $buySumQuery->where('transactions.kelurahan_id', '=', $filterColumn['transactions_bsi.kelurahan_id']['value']);
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsBsiController.php:399  if (empty($postdata['kelurahan_id'])) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsBsiController.php:403  if ($bsu && !empty($bsu->kelurahan_id)) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsBsiController.php:404  $postdata['kelurahan_id'] = $bsu->kelurahan_id;
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsBsiController.php:459  if ($bsu && !empty($bsu->kelurahan_id)) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsBsiController.php:460  $postdata['kelurahan_id'] = $bsu->kelurahan_id;
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsBsiController.php:607  $kelurahanId = $bsu ? ($bsu->kelurahan_id ?? null) : null;
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsBsiController.php:634  'kelurahan_id' => $kelurahanId,
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsController.php:44  $this->col[] = ["label"=>"Kelurahan","name"=>"kelurahan_id","join"=>"kelurahans,nama_kelurahan"];
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsController.php:183  ->leftJoin('kelurahans', 'transactions.kelurahan_id', '=', 'kelurahans.id')
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsController.php:202  if (!empty($filterColumn['kelurahans.nama_kelurahan']['value'])) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsController.php:203  $buySumQuery->where('kelurahans.nama_kelurahan', 'like', '%' . $filterColumn['kelurahans.nama_kelurahan']['value'] . '%');
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsController.php:205  if (!empty($filterColumn['transactions.kelurahan_id']['value'])) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsController.php:206  $buySumQuery->where('transactions.kelurahan_id', '=', $filterColumn['transactions.kelurahan_id']['value']);
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsController.php:459  $kelurahanId = $bsu ? ($bsu->kelurahan_id ?? null) : null;
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsController.php:461  // Jika admin saat ini tidak memiliki kelurahan_id (misal Super Admin), gunakan BSU nasabah
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsController.php:468  $kelurahanId = $nasabahBsu->kelurahan_id ?? null;
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsController.php:501  'kelurahan_id'   => $kelurahanId,
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsController.php:665  // Auto-assign kelurahan_id dari BSU (cms_users)
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsController.php:666  if (empty($postdata['kelurahan_id'])) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsController.php:670  if ($bsu && !empty($bsu->kelurahan_id)) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsController.php:671  $postdata['kelurahan_id'] = $bsu->kelurahan_id;
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsController.php:734  if ($bsu && !empty($bsu->kelurahan_id)) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTransactionsController.php:735  $postdata['kelurahan_id'] = $bsu->kelurahan_id;
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTukarPoinsController.php:40  $this->col[] = ["label"=>"Kelurahan","name"=>"kelurahan_id","join"=>"kelurahans,nama_kelurahan"];
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTukarPoinsController.php:296  if (empty($postdata['kelurahan_id'])) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTukarPoinsController.php:300  if ($bsu && !empty($bsu->kelurahan_id)) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTukarPoinsController.php:301  $postdata['kelurahan_id'] = $bsu->kelurahan_id;
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTukarPoinsController.php:329  if ($bsu && !empty($bsu->kelurahan_id)) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTukarPoinsController.php:330  $postdata['kelurahan_id'] = $bsu->kelurahan_id;
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTukarSaldoController.php:40  $this->col[] = ["label"=>"Kelurahan","name"=>"kelurahan_id","join"=>"kelurahans,nama_kelurahan"];
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTukarSaldoController.php:173  ->leftJoin('kelurahans', 'tukar_saldo.kelurahan_id', '=', 'kelurahans.id');
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTukarSaldoController.php:190  if (!empty($filterColumn['kelurahans.nama_kelurahan']['value'])) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTukarSaldoController.php:191  $queryTukarSaldo->where('kelurahans.nama_kelurahan', 'like', '%' . $filterColumn['kelurahans.nama_kelurahan']['value'] . '%');
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTukarSaldoController.php:193  if (!empty($filterColumn['tukar_saldo.kelurahan_id']['value'])) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTukarSaldoController.php:194  $queryTukarSaldo->where('tukar_saldo.kelurahan_id', '=', $filterColumn['tukar_saldo.kelurahan_id']['value']);
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTukarSaldoController.php:393  if (empty($postdata['kelurahan_id'])) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTukarSaldoController.php:397  if ($bsu && !empty($bsu->kelurahan_id)) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTukarSaldoController.php:398  $postdata['kelurahan_id'] = $bsu->kelurahan_id;
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTukarSaldoController.php:427  if ($bsu && !empty($bsu->kelurahan_id)) {
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\AdminTukarSaldoController.php:428  $postdata['kelurahan_id'] = $bsu->kelurahan_id;
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\UserApp\RegisterController.php:21  $idKelurahan = $data_bsu->pluck('kelurahan_id')->filter()->unique()->values();
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\UserApp\RegisterController.php:22  $data_kelurahan = Kelurahan::whereIn('id', $idKelurahan)->orderBy('nama_kelurahan', 'asc')->get();
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\UserApp\RegisterController.php:26  return empty($b->kelurahan_id);
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\UserApp\TukarPoinController.php:104  $kelurahanId = $bsu ? ($bsu->kelurahan_id ?? $bsu->kecamatan_id ?? null) : null;
+ C:\laragon\www\bank_imam-main/app\Http\Controllers\UserApp\TukarPoinController.php:108  'kelurahan_id' => $kelurahanId,
+ C:\laragon\www\bank_imam-main/app\Models\BSU.php:26  return $this->belongsTo(Kelurahan::class, 'kelurahan_id', 'id');
+ C:\laragon\www\bank_imam-main/app\Models\Kelurahan.php:13  protected $table = 'kelurahans';
+ C:\laragon\www\bank_imam-main/app\Models\Kelurahan.php:18  return $this->hasMany(BSU::class, 'kelurahan_id', 'id');
+ C:\laragon\www\bank_imam-main/app\Models\LaporanKeuangan.php:17  return $this->belongsTo(Kelurahan::class, 'kelurahan_id', 'id');
+ C:\laragon\www\bank_imam-main/app\Models\Transaction.php:22  return $this->belongsTo(Kelurahan::class, 'kelurahan_id', 'id');
+ C:\laragon\www\bank_imam-main/app\Models\TransactionsBsi.php:16  return $this->belongsTo(Kelurahan::class, 'kelurahan_id', 'id');
+ C:\laragon\www\bank_imam-main/app\Models\TukarPoin.php:23  return $this->belongsTo(Kelurahan::class, 'kelurahan_id', 'id');
+ C:\laragon\www\bank_imam-main/app\Models\TukarSaldo.php:23  return $this->belongsTo(Kelurahan::class, 'kelurahan_id', 'id');
+ C:\laragon\www\bank_imam-main/resources/views\admin\filter_kelurahan.blade.php:7  $kelurahans = \DB::table('kelurahans')->whereNull('deleted_at')->orderBy('nama_kelurahan', 'asc')->get();
+ C:\laragon\www\bank_imam-main/resources/views\admin\filter_kelurahan.blade.php:9  $selectedKelurahan = $filterColumn['kelurahans.nama_kelurahan']['value'] ?? '';
+ C:\laragon\www\bank_imam-main/resources/views\admin\filter_kelurahan.blade.php:17  <input type="hidden" name="filter_column[kelurahans.nama_kelurahan][type]" value="=">
+ C:\laragon\www\bank_imam-main/resources/views\admin\filter_kelurahan.blade.php:24  @if($colKey !== 'kelurahans.nama_kelurahan' && is_array($colDef))
+ C:\laragon\www\bank_imam-main/resources/views\admin\filter_kelurahan.blade.php:46  <select name="filter_column[kelurahans.nama_kelurahan][value]" id="filter_kelurahan_select" class="form-control input-sm" style="min-width: 200px;" on...
+ C:\laragon\www\bank_imam-main/resources/views\admin\filter_kelurahan.blade.php:48  @foreach($kelurahans as $kel)
+ C:\laragon\www\bank_imam-main/resources/views\admin\filter_kelurahan.blade.php:62  if (isset($resetParams['filter_column']['kelurahans.nama_kelurahan'])) {
+ C:\laragon\www\bank_imam-main/resources/views\admin\filter_kelurahan.blade.php:63  unset($resetParams['filter_column']['kelurahans.nama_kelurahan']);
+ C:\laragon\www\bank_imam-main/resources/views\user-app\register.blade.php:46  {{-- 1. Pilih Kelurahan --}}
+ C:\laragon\www\bank_imam-main/resources/views\user-app\register.blade.php:48  <label for="kelurahan_id" class="form-label fw-bold mb-1" style="font-size:12px; color:#334155;">
+ C:\laragon\www\bank_imam-main/resources/views\user-app\register.blade.php:55  <select class="form-select py-2 px-3" id="kelurahan_id" name="kelurahan_id" required
+ C:\laragon\www\bank_imam-main/resources/views\user-app\register.blade.php:57  <option value="" disabled {{ old('kelurahan_id') ? '' : 'selected' }}>Pilih Kelurahan terlebih dahulu</option>
+ C:\laragon\www\bank_imam-main/resources/views\user-app\register.blade.php:59  <option value="{{ $kel->id }}" {{ old('kelurahan_id') == $kel->id ? 'selected' : '' }}>
+ C:\laragon\www\bank_imam-main/resources/views\user-app\register.blade.php:64  <option value="none" {{ old('kelurahan_id') === 'none' ? 'selected' : '' }}>Wilayah belum diatur</option>
+ C:\laragon\www\bank_imam-main/resources/views\user-app\register.blade.php:84  data-kelurahan="{{ $bsu->kelurahan_id ?: 'none' }}"
+ C:\laragon\www\bank_imam-main/resources/views\user-app\register.blade.php:185  const kelSelect = document.getElementById('kelurahan_id');
+ C:\laragon\www\bank_imam-main/resources/views\user-app\register.blade.php:195  ph.textContent = 'Pilih Kelurahan terlebih dahulu';
+ C:\laragon\www\bank_imam-main/resources/views\vendor\crudbooster\sidebar.blade.php:91  href='{{ Route::has("AdminKelurahansControllerGetAdd") ? route("AdminKelurahansControllerGetAdd") : url(config("crudbooster.ADMIN_PATH")."/kelurahan/a...
+ C:\laragon\www\bank_imam-main/resources/views\vendor\crudbooster\sidebar.blade.php:94  href='{{ Route::has("AdminKelurahansControllerGetIndex") ? route("AdminKelurahansControllerGetIndex") : url(config("crudbooster.ADMIN_PATH")."/kelurah...
+
+===== RUTE TERKAIT WILAYAH =====
+ web.php:10  use App\Http\Controllers\UserApp\RegisterController;
+ web.php:23  | Here is where you can register web routes for your application. These
+ web.php:36  Route::get('/register', [RegisterController::class, 'index'])->name('indexRegister');
+ web.php:37  Route::post('/register', [RegisterController::class, 'store'])->name('storeUser');

@@ -1,0 +1,38 @@
+===== TABEL KELURAHAN: kelurahans =====
+Kolom: id, nama_kelurahan, created_at, updated_at, deleted_at
+
+  id=1 | nama_kelurahan=Meruya Selatan
+  id=2 | nama_kelurahan=Joglo
+
+Kolom kelurahan di cms_users: kelurahan_id
+
+===== BSU PER KELURAHAN (total BSU: 21) =====
+
+#1 Meruya Selatan: 19 BSU
+   - #5 BSU Mercubuana
+   - #12 BSU Karya Peduli
+   - #13 BSU Madrasah Raudiatul Muta'alimin
+   - #14 BSU Melati 1 RW 02
+   - #15 BSU Melati 2 RW 02
+   - #16 BSU Agathis Botanical RW 02
+   - #17 BSU Surya Mandiri Kel.Meruya Selatan
+   - #18 BSU Asri SDN Meruya Selatan 1
+   - #19 BSU Raflesia SDN Meruya Selatan 3
+   - #20 BSU Jack RW 03
+   - #21 BSU RPTRA Mahkota
+   - #22 BSU RPTRA Meruya Selatan
+   - #23 BSU RPTRA Manuver
+   - #24 BSU RPTRA Menara
+   - #27 BSU Rosmerah RW 05
+   - #28 BSU Anggrek Bulan RW 06
+   - #29 BSU Camal Jaya RW 07
+   - #30 BSU Pelangi RW 08
+   - #31 BSU Lestari RW 011
+
+#2 Joglo: 2 BSU
+   - #25 BSU RPTRA Manunggal
+   - #26 BSU Sumber Rejeki RW 04
+
+===== BSU TANPA KELURAHAN: 0 =====
+
+===== AKUN LAIN YANG MEMAKAI KELURAHAN (selain BSU) =====

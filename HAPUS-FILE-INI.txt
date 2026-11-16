@@ -1,0 +1,6 @@
+File yang HARUS dihapus dari proyek:
+app/Http/Controllers/AdminKalkulatorController.php
+app/Http/Controllers/UserApp/KalkulatorController.php
+resources/views/admin/kalkulator.blade.php
+resources/views/user-app/kalkulator.blade.php
+public/js/kalkulator.js

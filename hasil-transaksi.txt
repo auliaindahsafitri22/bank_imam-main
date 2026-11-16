@@ -1,0 +1,115 @@
+===== TABEL TERKAIT TRANSAKSI =====
+
+bsi_harga (2 baris)
+  kolom: id, nama, kategori, deskripsi, image, satuan, harga, poin_per_kg, is_active, updated_by, created_at, updated_at
+
+bsi_harga_riwayat (2 baris)
+  kolom: id, bsi_harga_id, harga_lama, harga_baru, tanggal, changed_by, created_at
+
+bsi_pengumuman (1 baris)
+  kolom: id, judul, isi, lampiran_harga, created_by, created_at, updated_at
+
+bsi_pengumuman_file (2 baris)
+  kolom: id, pengumuman_id, nama_asli, path, mime, ukuran, created_at
+
+bsi_pengumuman_tujuan (1 baris)
+  kolom: id, pengumuman_id, bsu_id, dibaca_at, created_at
+
+cms_users (24 baris)
+  kolom: id, name, photo, email, password, no_whatsapp, id_cms_privileges, kelurahan_id, created_at, updated_at, status, kecamatan, kelurahan, rw, alamat, tingkat
+
+kas_kategori (9 baris)
+  kolom: id, admin_id, nama, tipe, is_active, created_at, updated_at
+
+kas_umum (0 baris)
+  kolom: id, admin_id, tanggal, tipe, kategori_id, uraian, jumlah, bukti, ref_type, ref_id, created_by, created_at, updated_at, deleted_at
+
+saldo (173 baris)
+  kolom: id, user_id, total_saldo, created_at, updated_at
+
+saldo_mutasi (81 baris)
+  kolom: id, user_id, type, amount, balance_after, source, ref_type, ref_id, note, actor_id, created_at
+
+sales (25 baris)
+  kolom: id, items, total_weight, total_price, foto, updated_at, created_at
+
+transactions (2262 baris)
+  kolom: id, user_id, admin_id, sampah_id, total_weight, price_per_kg, poin_per_kg, total_income, point_received, periode, created_at, updated_at, kelurahan_id
+
+transactions_bsi (136 baris)
+  kolom: id, admin_id, sampah_id, total_weight, harga_per_kg, total_price, profit, periode, created_at, updated_at, kelurahan_id
+
+tukar_poins (0 baris)
+  kolom: id, user_id, admin_id, reward_id, quantity, total_price, bukti_foto, status, created_at, updated_at, kelurahan_id
+
+tukar_saldo (92 baris)
+  kolom: id, user_id, admin_id, reward_id, quantity, total_price, bukti_foto, status, created_at, updated_at, kelurahan_id
+
+users (276 baris)
+  kolom: id, username, email, password, cms_user_id, address, phone_number, picture, email_verified_at, remember_token, created_at, updated_at
+
+===== CONTOH 1 BARIS (dipotong) =====
+
+transactions:
+  id = 2440
+  user_id = 94
+  admin_id = 5
+  sampah_id = 87
+  total_weight = 2
+  price_per_kg = 2800
+  poin_per_kg = 0
+  total_income = 5600
+  point_received = 0
+  periode = 03 Oktober 2026
+  created_at = 2026-10-08 18:54:20
+  updated_at = 
+  kelurahan_id = 
+
+sales:
+  id = 35
+  items = [{"id":"13","name":"TV Bekas","price":5000,"image"...
+  total_weight = 2.00
+  total_price = 5750
+  foto = 
+  updated_at = 2024-08-08 06:22:39
+  created_at = 2024-08-08 06:22:39
+
+cms_users:
+  id = 33
+  name = BSI JAKARATA BARAT
+  email = bsijakartabarat@gmail.com
+  no_whatsapp = 08136371467341
+  id_cms_privileges = 5
+  kelurahan_id = 
+  created_at = 2026-11-12 13:41:20
+  updated_at = 
+  status = Active
+  kecamatan = 
+  kelurahan = 
+  rw = 
+  alamat = 
+  tingkat = 
+
+===== JUMLAH JENIS SAMPAH PER BSU (sampah.admin_id) =====
+  #1 Super Admin: 4
+  #5 BSU Mercubuana: 38
+  #12 BSU Karya Peduli: 40
+  #13 BSU Madrasah Raudiatul Muta'alimin: 39
+  #14 BSU Melati 1 RW 02: 39
+  #15 BSU Melati 2 RW 02: 39
+  #16 BSU Agathis Botanical RW 02: 39
+  #17 BSU Surya Mandiri Kel.Meruya Selatan: 39
+  #18 BSU Asri SDN Meruya Selatan 1: 39
+  #19 BSU Raflesia SDN Meruya Selatan 3: 39
+  #20 BSU Jack RW 03: 39
+  #21 BSU RPTRA Mahkota: 39
+  #22 BSU RPTRA Meruya Selatan: 39
+  #23 BSU RPTRA Manuver: 39
+  #24 BSU RPTRA Menara: 39
+  #25 BSU RPTRA Manunggal: 40
+  #26 BSU Sumber Rejeki RW 04: 54
+  #27 BSU Rosmerah RW 05: 39
+  #28 BSU Anggrek Bulan RW 06: 39
+  #29 BSU Camal Jaya RW 07: 39
+  #30 BSU Pelangi RW 08: 39
+  #31 BSU Lestari RW 011: 39
