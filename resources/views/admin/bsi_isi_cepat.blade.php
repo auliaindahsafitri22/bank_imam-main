@@ -1,5 +1,6 @@
 @extends('crudbooster::admin_template')
 @section('content')
+{!! $bannerBsi ?? '' !!}
 <style>
  #tb-cepat input.form-control{min-width:110px} #tb-cepat tr.kat td{background:#e8f5ee;font-weight:700} #tb-cepat tr.terisi td{background:#f6fff9}
  .ref{font-size:.85em;color:#33414d} .stik{position:sticky;top:0;z-index:5;background:#fff;padding:8px 0;border-bottom:1px solid #ddd}

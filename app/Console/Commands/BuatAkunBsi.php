@@ -11,7 +11,7 @@ class BuatAkunBsi extends Command
 {
     protected $signature = 'bsi:buat-akun
                             {--nama=BSI - Bank Sampah Induk : Nama akun}
-                            {--email=bsi@bankimam.local : Email untuk login CMS}
+                            {--email=bsi@ecobuana.local : Email untuk login CMS}
                             {--reset : Buat ulang password akun yang sudah ada}';
 
     protected $description = 'Membuat akun BSI (Bank Sampah Induk) untuk login CMS. Password acak ditampilkan SEKALI.';

@@ -62,7 +62,7 @@
                             <p class="m-0 text-muted" style="font-size:11px;">Format dokumen PDF resmi</p>
                         </div>
                     </div>
-                    <a href="{{ asset('files/Buku-Panduan-Bank-Imam-Nasabah-2025.pdf') }}" target="_blank"
+                    <a href="{{ asset('files/Buku-Panduan-EcoBuana-Nasabah-2025.pdf') }}" target="_blank"
                        class="btn btn-sm rounded-pill fw-semibold text-decoration-none"
                        style="background:#f0fdf4; color:#00a056; border:1px solid #bbf7d0; font-size:11px; padding:4px 10px;">
                         <i class="bi bi-box-arrow-up-right me-1"></i> Buka Penuh
@@ -74,12 +74,12 @@
 
                 {{-- PDF Embed Container --}}
                 <div class="rounded-3 overflow-hidden" style="height:520px; border:1px solid #e2e8f0; background:#f8fafc;">
-                    <iframe src="{{ asset('files/Buku-Panduan-Bank-Imam-Nasabah-2025.pdf') }}#toolbar=0" 
+                    <iframe src="{{ asset('files/Buku-Panduan-EcoBuana-Nasabah-2025.pdf') }}#toolbar=0" 
                             width="100%" height="100%" style="border:none;"
                             title="Buku Panduan Nasabah">
                         <div class="p-4 text-center">
                             <p class="text-muted" style="font-size:13px;">Browser Anda tidak dapat menampilkan pratinjau PDF langsung.</p>
-                            <a href="{{ asset('files/Buku-Panduan-Bank-Imam-Nasabah-2025.pdf') }}" target="_blank" class="btn btn-primary-custom btn-sm rounded-pill">
+                            <a href="{{ asset('files/Buku-Panduan-EcoBuana-Nasabah-2025.pdf') }}" target="_blank" class="btn btn-primary-custom btn-sm rounded-pill">
                                 Unduh / Buka Dokumen PDF
                             </a>
                         </div>

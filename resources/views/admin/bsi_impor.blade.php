@@ -1,5 +1,6 @@
 @extends('crudbooster::admin_template')
 @section('content')
+{!! $bannerBsi ?? '' !!}
 <p><a href="{{ CRUDBooster::mainpath() }}" class="btn btn-default"><i class="fa fa-arrow-left"></i> Kembali</a>
  <a href="{{ CRUDBooster::mainpath('isi-cepat') }}" class="btn btn-primary"><i class="fa fa-table"></i> Isi harga cepat (tabel)</a></p>
 

@@ -18,18 +18,31 @@ class PengumumanBsiService
     const MAKS_UKURAN = 5242880;         // 5 MB per file
     const EKSTENSI = ['pdf', 'xlsx', 'xls', 'csv', 'docx', 'doc', 'jpg', 'jpeg', 'png'];
 
-    /** BSU aktif yang dapat dipilih sebagai tujuan, urut A–Z. */
-    public function daftarBsu()
+    /**
+     * BSU aktif yang dapat dipilih sebagai tujuan, urut A–Z.
+     * @param int|null $batasBsi bila diisi (akun BSI): hanya BSU di kelurahan yang dipegang BSI itu
+     */
+    public function daftarBsu($batasBsi = null)
     {
-        return DB::table('cms_users')->where('id_cms_privileges', 4)
-            ->where(function ($q) { $q->whereNull('status')->orWhere('status', '!=', 'Inactive'); })
-            ->orderBy('name')->get(['id', 'name', 'kecamatan', 'kelurahan']);
+        $q = DB::table('cms_users')->where('id_cms_privileges', 4)
+            ->where(function ($q) { $q->whereNull('status')->orWhere('status', '!=', 'Inactive'); });
+        if ($batasBsi !== null) {
+            $q->whereIn('id', app(WilayahBsiService::class)->bsuIdsBsi($batasBsi) ?: [0]);
+        }
+        return $q->orderBy('name')->get(['id', 'name', 'kecamatan', 'kelurahan']);
     }
 
-    /** Snapshot harga acuan aktif saat ini. */
-    public function snapshotHarga()
+    /**
+     * Snapshot harga acuan aktif saat ini.
+     * @param int|null|false $pemilik false = semua; null = Harga Bersama; angka = satu BSI
+     */
+    public function snapshotHarga($pemilik = false)
     {
-        return DB::table('bsi_harga')->where('is_active', 1)->orderBy('kategori')->orderBy('nama')
+        $q = DB::table('bsi_harga')->where('is_active', 1)->whereNull('dihapus_at');
+        if ($pemilik !== false) {
+            WilayahBsiService::batasiPemilik($q, $pemilik);
+        }
+        return $q->orderBy('kategori')->orderBy('nama')
             ->get(['nama', 'kategori', 'harga'])
             ->map(function ($r) { return ['nama' => $r->nama, 'kategori' => $r->kategori, 'harga' => (int) $r->harga]; })->all();
     }
@@ -85,7 +98,7 @@ class PengumumanBsiService
      * @param bool $lampirkanExcel membuat file Excel daftar harga acuan saat ini sebagai lampiran
      * @return array [id, jumlah, lampiran]
      */
-    public function kirim($pengirimId, $judul, $isi, array $bsuIds, $sertakanHarga = false, array $files = [], $lampirkanExcel = false)
+    public function kirim($pengirimId, $judul, $isi, array $bsuIds, $sertakanHarga = false, array $files = [], $lampirkanExcel = false, $batasBsi = null, $pemilikHarga = false)
     {
         $judul = trim((string) $judul);
         $isi = trim((string) $isi);
@@ -109,6 +122,13 @@ class PengumumanBsiService
         if (count($valid) !== count($bsuIds)) {
             throw new InvalidArgumentException('Ada tujuan yang bukan BSU aktif. Muat ulang halaman lalu pilih kembali.');
         }
+        // Akun BSI hanya boleh menyapa BSU di kelurahan yang dipegangnya.
+        if ($batasBsi !== null) {
+            $dalam = app(WilayahBsiService::class)->bsuIdsBsi($batasBsi);
+            if (array_diff($valid, $dalam)) {
+                throw new InvalidArgumentException('Ada BSU tujuan di luar kelurahan BSI Anda. Muat ulang halaman lalu pilih kembali.');
+            }
+        }
 
         $files = array_values(array_filter($files));
         if (count($files) > self::MAKS_FILE) {
@@ -120,7 +140,7 @@ class PengumumanBsiService
         }
         $snapExcel = null;
         if ($lampirkanExcel) {
-            $snapExcel = $this->snapshotHarga();
+            $snapExcel = $this->snapshotHarga($pemilikHarga);
             if (!count($snapExcel)) {
                 throw new InvalidArgumentException('Belum ada harga acuan aktif untuk dibuat menjadi file Excel.');
             }
@@ -128,7 +148,7 @@ class PengumumanBsiService
 
         $lampiran = null;
         if ($sertakanHarga) {
-            $snap = $this->snapshotHarga();
+            $snap = $this->snapshotHarga($pemilikHarga);
             if (!count($snap)) {
                 throw new InvalidArgumentException('Belum ada harga acuan aktif untuk dilampirkan.');
             }

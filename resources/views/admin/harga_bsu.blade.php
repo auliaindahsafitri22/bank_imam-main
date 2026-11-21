@@ -2,6 +2,19 @@
 @section('content')
 @if(session('bsi_info'))<div class="alert alert-info">{{ session('bsi_info') }}</div>@endif
 
+@if($sumberBsi)
+<div class="callout callout-success" style="margin-bottom:12px"><i class="fa fa-sitemap"></i> Harga acuan Anda bersumber dari <b>{{ $sumberBsi->name }}</b>
+  @if($sumberKelurahan)(Kelurahan {{ $sumberKelurahan }})@endif.
+  @if($sumberBsi->status === 'Inactive')<span class="label label-warning">BSI nonaktif</span>@endif</div>
+@else
+<div class="callout callout-warning" style="margin-bottom:12px"><i class="fa fa-warning"></i>
+  @if($sumberKelurahan)Kelurahan {{ $sumberKelurahan }} belum punya BSI, sehingga Anda memakai <b>Harga Bersama</b>.
+  @else Kelurahan akun Anda belum diisi, sehingga Anda memakai <b>Harga Bersama</b>. Hubungi Super Admin.@endif</div>
+@endif
+@if(!empty($sambunganLain))
+<div class="alert alert-warning"><i class="fa fa-exchange"></i> {{ $sambunganLain }} jenis sampah Anda masih terhubung ke harga dari BSI lain. Putuskan lalu hubungkan ulang ke jenis BSI Anda agar harga ikut BSI kelurahan Anda.</div>
+@endif
+
 <div class="callout callout-info">
   <h4><i class="fa fa-info-circle"></i> Cara kerja</h4>
   <p><b>Harga beli nasabah = Harga BSI − Margin Anda.</b> Margin bisa Rupiah per kg atau persen. Bila BSI mengubah harga, harga beli nasabah dihitung ulang otomatis (jika "Ikuti BSI" dicentang) dan Anda mendapat notifikasi.</p>

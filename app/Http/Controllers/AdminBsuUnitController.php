@@ -4,10 +4,11 @@ use CRUDBooster;
 use DB;
 use App\Http\Controllers\Concerns\CekPeran;
 use App\Support\BsuNaming;
+use App\Services\WilayahBsiService;
 
 /**
  * Manajemen Bank Sampah Unit (BSU): identitas, wilayah (kecamatan/kelurahan/RW), penamaan seragam.
- * Super Admin/Admin: kelola. BSI: hanya lihat.
+ * Super Admin/Admin: kelola. BSI: hanya lihat BSU di kelurahan yang dipegangnya.
  */
 class AdminBsuUnitController extends \crocodicstudio\crudbooster\controllers\CBController
 {
@@ -84,6 +85,9 @@ class AdminBsuUnitController extends \crocodicstudio\crudbooster\controllers\CBC
     public function hook_query_index(&$query)
     {
         $query->where('cms_users.id_cms_privileges', 4);
+        if ($this->adalahBsi()) {
+            $query->whereIn('cms_users.id', app(WilayahBsiService::class)->bsuIdsBsi(CRUDBooster::myId()) ?: [0]);
+        }
     }
 
     public function hook_before_add(&$postdata)
@@ -106,7 +110,15 @@ class AdminBsuUnitController extends \crocodicstudio\crudbooster\controllers\CBC
     }
 
     public function getEdit($id)   { $this->wajibPeran([1, 2]); $this->pastikanBsu($id); return parent::getEdit($id); }
-    public function getDetail($id) { $this->wajibPeran([1, 2, 'bsi']); $this->pastikanBsu($id); return parent::getDetail($id); }
+    public function getDetail($id)
+    {
+        $this->wajibPeran([1, 2, 'bsi']);
+        $this->pastikanBsu($id);
+        if ($this->adalahBsi() && !app(WilayahBsiService::class)->bsuMilikBsi(CRUDBooster::myId(), $id)) {
+            CRUDBooster::redirect(CRUDBooster::mainpath(), 'Data BSU tidak ditemukan.', 'warning');
+        }
+        return parent::getDetail($id);
+    }
 
     private function pastikanBsu($id)
     {
@@ -122,8 +134,11 @@ class AdminBsuUnitController extends \crocodicstudio\crudbooster\controllers\CBC
         $this->cbLoader();
         $q = trim((string) request('q')); $kec = request('kecamatan'); $kel = request('kelurahan');
 
-        $semua = DB::table('cms_users')->where('id_cms_privileges', 4)->orderBy('name')
-            ->get(['id', 'name', 'tingkat', 'kecamatan', 'kelurahan', 'rw', 'no_whatsapp', 'status']);
+        $semuaQ = DB::table('cms_users')->where('id_cms_privileges', 4)->orderBy('name');
+        if ($this->adalahBsi()) {
+            $semuaQ->whereIn('id', app(WilayahBsiService::class)->bsuIdsBsi(CRUDBooster::myId()) ?: [0]);
+        }
+        $semua = $semuaQ->get(['id', 'name', 'tingkat', 'kecamatan', 'kelurahan', 'rw', 'no_whatsapp', 'status']);
         $opsiKec = $semua->pluck('kecamatan')->filter()->unique()->sort()->values();
         $opsiKel = $semua->filter(function ($r) use ($kec) { return !$kec || $r->kecamatan === $kec; })->pluck('kelurahan')->filter()->unique()->sort()->values();
 

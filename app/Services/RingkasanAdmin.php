@@ -18,7 +18,7 @@ class RingkasanAdmin
         }
 
         $perubahan = DB::table('bsi_harga_riwayat as r')->join('bsi_harga as b', 'b.id', '=', 'r.bsi_harga_id')
-            ->whereNotNull('r.harga_lama')->orderByDesc('r.id')->limit(6)->get(['b.nama', 'r.harga_lama', 'r.harga_baru', 'r.tanggal']);
+            ->whereNull('b.dihapus_at')->whereNotNull('r.harga_lama')->orderByDesc('r.id')->limit(6)->get(['b.nama', 'r.harga_lama', 'r.harga_baru', 'r.tanggal']);
 
         if ($peran === 4) {
             $id = (int) CRUDBooster::myId();
@@ -40,7 +40,11 @@ class RingkasanAdmin
 
         return ['view' => 'admin.ringkasan_pusat_isi', 'data' => [
             'perubahan' => $perubahan,
-            'jmlJenis' => DB::table('bsi_harga')->where('is_active', 1)->count(),
+            'jmlJenis' => (function () use ($peran, $idBsi) {
+                $q = DB::table('bsi_harga')->where('is_active', 1)->whereNull('dihapus_at');
+                if ($idBsi > 0 && $peran === $idBsi) { $q->where('bsi_id', (int) CRUDBooster::myId()); }   // BSI hanya menghitung daftarnya sendiri
+                return $q->count();
+            })(),
             'jmlBsu' => DB::table('cms_users')->where('id_cms_privileges', 4)->count(),
             'jmlNasabah' => DB::table('users')->count(),
             'terhubung' => DB::table('sampah')->whereNotNull('bsi_harga_id')->distinct()->count('admin_id'),

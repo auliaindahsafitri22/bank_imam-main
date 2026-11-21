@@ -87,8 +87,8 @@ class HargaService
 
         DB::transaction(function () use ($bsiHargaId, $hargaBaru, $changedBy, &$terdampak, &$diubah) {
             $item = DB::table('bsi_harga')->where('id', $bsiHargaId)->lockForUpdate()->first();
-            if (!$item) {
-                throw new InvalidArgumentException('Jenis sampah BSI tidak ditemukan.');
+            if (!$item || $item->dihapus_at) {
+                throw new InvalidArgumentException('Jenis sampah BSI tidak ditemukan atau sudah dihapus.');
             }
             $hargaLama = (int) $item->harga;
             if ($hargaLama === $hargaBaru) {
@@ -152,10 +152,11 @@ class HargaService
         $value = self::validasiMargin($type, $value);
 
         return DB::transaction(function () use ($adminId, $bsiHargaId, $type, $value, $changedBy) {
-            $bsi = DB::table('bsi_harga')->where('id', $bsiHargaId)->where('is_active', 1)->first();
+            $bsi = DB::table('bsi_harga')->where('id', $bsiHargaId)->where('is_active', 1)->whereNull('dihapus_at')->first();
             if (!$bsi) {
                 throw new InvalidArgumentException('Jenis sampah BSI tidak ditemukan atau nonaktif.');
             }
+            $this->pastikanSumberBenar($adminId, $bsi);
             if (DB::table('sampah')->where('admin_id', $adminId)->where('bsi_harga_id', $bsi->id)->exists()) {
                 throw new InvalidArgumentException('Jenis sampah ini sudah aktif di BSU Anda.');
             }
@@ -203,10 +204,11 @@ class HargaService
     {
         return DB::transaction(function () use ($adminId, $sampahId, $bsiHargaId, $changedBy) {
             $s = DB::table('sampah')->where('id', $sampahId)->where('admin_id', $adminId)->lockForUpdate()->first();
-            $bsi = DB::table('bsi_harga')->where('id', $bsiHargaId)->first();
+            $bsi = DB::table('bsi_harga')->where('id', $bsiHargaId)->whereNull('dihapus_at')->first();
             if (!$s || !$bsi) {
                 throw new InvalidArgumentException('Data sampah atau jenis BSI tidak ditemukan.');
             }
+            $this->pastikanSumberBenar($adminId, $bsi);
             if (DB::table('sampah')->where('admin_id', $adminId)->where('bsi_harga_id', $bsi->id)->where('id', '!=', $s->id)->exists()) {
                 throw new InvalidArgumentException('Jenis BSI ini sudah terhubung ke sampah lain di BSU Anda.');
             }
@@ -221,20 +223,53 @@ class HargaService
 
     public function putuskan($adminId, $sampahId)
     {
-        return DB::table('sampah')->where('id', $sampahId)->where('admin_id', $adminId)->update([
-            'bsi_harga_id' => null, 'margin_value' => 0, 'margin_type' => 'nominal', 'updated_at' => now(),
-        ]);
+        return DB::transaction(function () use ($adminId, $sampahId) {
+            $s = DB::table('sampah')->where('id', $sampahId)->where('admin_id', $adminId)->lockForUpdate()->first();
+            if (!$s) {
+                return 0;
+            }
+            $n = DB::table('sampah')->where('id', $s->id)->update([
+                'bsi_harga_id' => null, 'margin_value' => 0, 'margin_type' => 'nominal', 'updated_at' => now(),
+            ]);
+            if ($s->bsi_harga_id) {
+                $this->catatRiwayatSampah($s->id, $adminId, $s->bsi_harga_id, (int) $s->price_per_kg, (int) $s->price_per_kg, 'putus', $adminId,
+                    'Sambungan ke harga BSI diputus; harga beli nasabah tetap');
+            }
+            return $n;
+        });
     }
 
-    public function riwayatBsi($bsiHargaId = null, $limit = 100)
+    /**
+     * BSU hanya boleh memakai harga acuan dari BSI kelurahannya (atau Harga Bersama bila kelurahannya
+     * belum punya BSI). Mencegah BSU mengaktifkan/menghubungkan jenis milik BSI di kelurahan lain.
+     */
+    private function pastikanSumberBenar($adminId, $bsiRow)
+    {
+        $boleh = app(WilayahBsiService::class)->pemilikHargaBsu($adminId);
+        $pemilik = $bsiRow->bsi_id === null ? null : (int) $bsiRow->bsi_id;
+        if ($pemilik !== $boleh) {
+            throw new InvalidArgumentException('Jenis sampah ini bukan dari BSI kelurahan Anda'
+                . ($boleh === null ? ' (kelurahan Anda belum punya BSI).' : '.'));
+        }
+    }
+
+    /**
+     * Riwayat harga acuan.
+     * @param int|null|false $pemilik false = semua; null = hanya Harga Bersama; angka = hanya BSI itu
+     */
+    public function riwayatBsi($bsiHargaId = null, $limit = 100, $pemilik = false)
     {
         $q = DB::table('bsi_harga_riwayat as r')
             ->join('bsi_harga as b', 'b.id', '=', 'r.bsi_harga_id')
             ->leftJoin('cms_users as u', 'u.id', '=', 'r.changed_by')
-            ->select('r.*', 'b.nama', 'u.name as pengubah')
+            ->leftJoin('cms_users as d', 'd.id', '=', 'b.dihapus_oleh')
+            ->select('r.*', 'b.nama', 'u.name as pengubah', 'b.dihapus_at', 'd.name as penghapus')
             ->orderBy('r.id', 'desc')->limit($limit);
         if ($bsiHargaId) {
             $q->where('r.bsi_harga_id', $bsiHargaId);
+        }
+        if ($pemilik !== false) {
+            WilayahBsiService::batasiPemilik($q, $pemilik, 'b.bsi_id');
         }
         return $q->get();
     }

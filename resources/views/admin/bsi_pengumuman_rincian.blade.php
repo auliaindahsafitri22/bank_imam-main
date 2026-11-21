@@ -1,6 +1,7 @@
 @extends('crudbooster::admin_template')
 @section('content')
 <p><a href="{{ CRUDBooster::mainpath() }}" class="btn btn-default"><i class="fa fa-arrow-left"></i> Kembali</a></p>
+@if($p->dihapus_at)<div class="alert alert-danger"><i class="fa fa-trash"></i> <b>DIHAPUS</b> pada {{ date('d/m/Y H:i', strtotime($p->dihapus_at)) }}{{ $penghapus ? ' oleh '.$penghapus : '' }}. BSU tujuan hanya melihat tanda dihapus tanpa isi.</div>@endif
 <div class="row">
  <div class="col-md-6"><div class="box box-success"><div class="box-header"><h3 class="box-title">{{ $p->judul }}</h3></div><div class="box-body">
   <p class="text-muted">Dikirim {{ date('d/m/Y H:i', strtotime($p->created_at)) }}</p>

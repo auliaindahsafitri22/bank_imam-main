@@ -53,7 +53,7 @@ class AdminCmsUsersController extends CBController {
 			"type" => "select",
 			"datatable" => "kelurahans,nama_kelurahan",
 			"required" => false,
-			"help" => "Khusus pemetaan wilayah BSU"
+			"help" => "Pemetaan wilayah BSU. Untuk akun BSI: kelurahan yang dipegang (satu BSI hanya satu kelurahan, satu kelurahan hanya satu BSI)."
 		];
 		$this->form[] = [
 			"label" => "Privilege",
@@ -77,7 +77,7 @@ class AdminCmsUsersController extends CBController {
 					var privVal = $('select[name=id_cms_privileges]').val();
 					
 					// Ketika privilege adalah BSU (id 4 atau nama BSU)
-					if (privText.toUpperCase().indexOf('BSU') !== -1 || privVal == '4') {
+					if (privText.toUpperCase().indexOf('BSU') !== -1 || privVal == '4' || privText.toUpperCase().trim() === 'BSI') {
 						$('#form-group-kelurahan_id').slideDown(200);
 						$('#kelurahan_id').prop('required', true);
 						if ($('#form-group-kelurahan_id label .text-danger').length === 0) {
@@ -117,20 +117,33 @@ class AdminCmsUsersController extends CBController {
 	}
 	public function hook_before_edit(&$postdata,$id) { 
 		unset($postdata['password_confirmation']);
-		if (isset($postdata['id_cms_privileges'])) {
-			$priv = DB::table('cms_privileges')->where('id', $postdata['id_cms_privileges'])->first();
-			if (!$priv || stripos($priv->name, 'BSU') === false) {
-				$postdata['kelurahan_id'] = null;
-			}
-		}
+		$this->aturKelurahanSesuaiPeran($postdata, $id);
 	}
 	public function hook_before_add(&$postdata) {      
 	    unset($postdata['password_confirmation']);
-		if (isset($postdata['id_cms_privileges'])) {
-			$priv = DB::table('cms_privileges')->where('id', $postdata['id_cms_privileges'])->first();
-			if (!$priv || stripos($priv->name, 'BSU') === false) {
-				$postdata['kelurahan_id'] = null;
+		$this->aturKelurahanSesuaiPeran($postdata, null);
+	}
+
+	/**
+	 * Kelurahan hanya berlaku untuk BSU dan BSI (peran lain dikosongkan). Untuk BSI, satu kelurahan hanya
+	 * boleh dipegang satu akun BSI (aturan yang sama dengan menu Akun BSI), sehingga halaman ini tidak bisa
+	 * dipakai melewati aturan itu — dan kelurahan BSI tidak ikut terhapus saat akunnya diedit di sini.
+	 */
+	private function aturKelurahanSesuaiPeran(&$postdata, $id) {
+		if (!isset($postdata['id_cms_privileges'])) {
+			return;
+		}
+		$priv = DB::table('cms_privileges')->where('id', $postdata['id_cms_privileges'])->first();
+		$adalahBsu = $priv && stripos($priv->name, 'BSU') !== false;
+		$adalahBsi = $priv && strtoupper(trim($priv->name)) === 'BSI';
+		if ($adalahBsi) {
+			try {
+				app(\App\Services\WilayahBsiService::class)->pastikanKelurahanTersedia($postdata['kelurahan_id'] ?? null, $id);
+			} catch (\InvalidArgumentException $e) {
+				CRUDBooster::redirect(CRUDBooster::mainpath(), $e->getMessage(), 'warning');
 			}
+		} elseif (!$adalahBsu) {
+			$postdata['kelurahan_id'] = null;
 		}
 	}
 	public static function bsuStat($id, $field)

@@ -24,6 +24,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        // Ringkasan tampil di halaman awal dashboard (di atas widget statistik bawaan).
+        View::composer('crudbooster::statistic_builder.show', function ($view) {
+            $r = request()->route();
+            if ($r && $r->getActionMethod() === 'getShowDashboard') {
+                $view->with('ringkasanDashboard', \App\Support\RingkasanDashboard::html());
+            }
+        });
+
         // Pengaturan ukuran huruf/ikon/kontras untuk SELURUH halaman CMS (CrudBooster).
         View::composer('crudbooster::admin_template', function ($view) {
             $f = $view->getFactory();

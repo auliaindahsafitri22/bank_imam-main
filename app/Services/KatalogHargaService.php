@@ -21,9 +21,25 @@ class KatalogHargaService
 
     private $harga;
 
+    /** Pemilik daftar harga yang dikelola: id akun BSI, atau null = Harga Bersama (daftar lama). */
+    private $pemilik = null;
+
     public function __construct(HargaService $harga)
     {
         $this->harga = $harga;
+    }
+
+    /** Batasi seluruh operasi service ini ke daftar harga satu BSI (atau Harga Bersama bila null). */
+    public function untukPemilik($pemilik)
+    {
+        $this->pemilik = $pemilik === null ? null : (int) $pemilik;
+        return $this;
+    }
+
+    /** Query baris harga acuan milik pemilik aktif. */
+    private function masterQuery()
+    {
+        return WilayahBsiService::batasiPemilik(DB::table('bsi_harga'), $this->pemilik)->whereNull('dihapus_at');
     }
 
     public static function kunci($nama)
@@ -54,7 +70,10 @@ class KatalogHargaService
      */
     public function katalog()
     {
+        // Acuan "di BSU" hanya dari BSU yang dilayani pemilik ini (BSU di kelurahan BSI itu).
+        $lingkup = app(WilayahBsiService::class)->bsuIdsPemilik($this->pemilik);
         $data = DB::table('sampah as s')->leftJoin('sampah_categories as c', 'c.id', '=', 's.category_id')
+            ->whereIn('s.admin_id', $lingkup ?: [0])
             ->get(['s.name', 'c.name as kategori', 's.price_per_kg', 's.poin_per_kg', 's.admin_id']);
 
         $grup = [];
@@ -80,7 +99,7 @@ class KatalogHargaService
         }
 
         $master = [];
-        foreach (DB::table('bsi_harga')->get() as $m) {
+        foreach ($this->masterQuery()->get() as $m) {
             $master[self::kunci($m->nama)] = $m;
         }
 
@@ -210,7 +229,7 @@ class KatalogHargaService
         if (count($rows) > self::MAKS_BARIS) {
             throw new InvalidArgumentException('Maksimal ' . self::MAKS_BARIS . ' baris.');
         }
-        $master = DB::table('bsi_harga')->get()->keyBy('id');
+        $master = $this->masterQuery()->get()->keyBy('id');
         $kunciMaster = [];
         foreach ($master as $m) {
             $kunciMaster[self::kunci($m->nama)] = $m->id;
@@ -276,6 +295,7 @@ class KatalogHargaService
                     }
                 } else {
                     $id = DB::table('bsi_harga')->insertGetId([
+                        'bsi_id' => $this->pemilik,
                         'nama' => $p['nama'], 'kategori' => $p['kat'] !== '' ? $p['kat'] : null, 'satuan' => 'kg',
                         'harga' => $p['harga'], 'poin_per_kg' => (int) $p['poin'], 'is_active' => $p['aktif'] ? 1 : 0,
                         'updated_by' => $userId, 'created_at' => now(), 'updated_at' => now(),
@@ -422,7 +442,7 @@ class KatalogHargaService
         }
 
         $master = [];
-        foreach (DB::table('bsi_harga')->get() as $m) {
+        foreach ($this->masterQuery()->get() as $m) {
             $master[self::kunci($m->nama)] = $m;
         }
 
@@ -485,13 +505,13 @@ class KatalogHargaService
     public function simpanPratinjau($userId, array $baris)
     {
         $token = Str::random(32);
-        Cache::put('harga_impor:' . $userId . ':' . $token, $baris, now()->addMinutes(30));
+        Cache::put('harga_impor:' . $userId . ':' . ($this->pemilik === null ? 'b' : $this->pemilik) . ':' . $token, $baris, now()->addMinutes(30));
         return $token;
     }
 
     public function terapkanImpor($userId, $token)
     {
-        $baris = Cache::pull('harga_impor:' . $userId . ':' . preg_replace('/[^A-Za-z0-9]/', '', (string) $token));
+        $baris = Cache::pull('harga_impor:' . $userId . ':' . ($this->pemilik === null ? 'b' : $this->pemilik) . ':' . preg_replace('/[^A-Za-z0-9]/', '', (string) $token));
         if (!is_array($baris)) {
             throw new InvalidArgumentException('Pratinjau sudah kedaluwarsa atau sudah diterapkan. Unggah ulang file.');
         }
@@ -500,11 +520,12 @@ class KatalogHargaService
             $ubahHarga = [];
             foreach ($baris as $b) {
                 if ($b['status'] === 'baru') {
-                    if (DB::table('bsi_harga')->whereRaw('LOWER(TRIM(nama)) = ?', [self::kunci($b['nama'])])->exists()) {
+                    if ($this->masterQuery()->whereRaw('LOWER(TRIM(nama)) = ?', [self::kunci($b['nama'])])->exists()) {
                         $hasil['dilewati']++;   // sudah dibuat orang lain sejak pratinjau
                         continue;
                     }
                     $id = DB::table('bsi_harga')->insertGetId([
+                        'bsi_id' => $this->pemilik,
                         'nama' => $b['nama'], 'kategori' => $b['kategori'] !== '' ? $b['kategori'] : null,
                         'deskripsi' => $b['deskripsi'] !== '' ? $b['deskripsi'] : null, 'satuan' => 'kg',
                         'harga' => (int) $b['harga'], 'poin_per_kg' => (int) $b['poin'],
@@ -514,7 +535,7 @@ class KatalogHargaService
                     $this->harga->catatHargaAwalBsi($id, (int) $b['harga'], $userId);
                     $hasil['dibuat']++;
                 } elseif ($b['status'] === 'ubah') {
-                    $m = DB::table('bsi_harga')->where('id', $b['master_id'])->first();
+                    $m = $this->masterQuery()->where('id', $b['master_id'])->first();
                     if (!$m) { $hasil['dilewati']++; continue; }
                     $data = [];
                     if ($b['kategori'] !== '' && $b['kategori'] !== (string) $m->kategori) { $data['kategori'] = $b['kategori']; }

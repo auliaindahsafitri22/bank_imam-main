@@ -34,7 +34,7 @@ class AdminPesanBsiController extends \crocodicstudio\crudbooster\controllers\CB
         $rows = DB::table('bsi_pengumuman_tujuan as t')->join('bsi_pengumuman as p', 'p.id', '=', 't.pengumuman_id')
             ->leftJoin('cms_users as u', 'u.id', '=', 'p.created_by')
             ->where('t.bsu_id', CRUDBooster::myId())->orderByDesc('p.id')
-            ->selectRaw('p.id, p.judul, p.created_at, u.name as pengirim, t.dibaca_at, (SELECT COUNT(*) FROM bsi_pengumuman_file f WHERE f.pengumuman_id = p.id) AS lampiran')->paginate(20);
+            ->selectRaw('p.id, p.judul, p.created_at, p.dihapus_at, u.name as pengirim, t.dibaca_at, (SELECT COUNT(*) FROM bsi_pengumuman_file f WHERE f.pengumuman_id = p.id) AS lampiran')->paginate(20);
         return view('admin.pesan_bsi_index', ['page_title' => 'Pengumuman dari BSI', 'rows' => $rows]);
     }
 
@@ -54,8 +54,8 @@ class AdminPesanBsiController extends \crocodicstudio\crudbooster\controllers\CB
         $p = DB::table('bsi_pengumuman as p')->leftJoin('cms_users as u', 'u.id', '=', 'p.created_by')
             ->where('p.id', (int) $id)->first(['p.*', 'u.name as pengirim']);
         return view('admin.pesan_bsi_baca', [
-            'page_title' => 'Pengumuman dari BSI', 'p' => $p, 'harga' => $p->lampiran_harga ? json_decode($p->lampiran_harga, true) : [],
-            'berkas' => DB::table('bsi_pengumuman_file')->where('pengumuman_id', (int) $id)->orderBy('id')->get(),
+            'page_title' => 'Pengumuman dari BSI', 'p' => $p, 'dihapus' => (bool) $p->dihapus_at, 'harga' => ($p->lampiran_harga && !$p->dihapus_at) ? json_decode($p->lampiran_harga, true) : [],
+            'berkas' => $p->dihapus_at ? collect() : DB::table('bsi_pengumuman_file')->where('pengumuman_id', (int) $id)->orderBy('id')->get(),
         ]);
     }
 
@@ -65,6 +65,8 @@ class AdminPesanBsiController extends \crocodicstudio\crudbooster\controllers\CB
         $this->wajibPeran([4]);
         $f = DB::table('bsi_pengumuman_file as f')
             ->join('bsi_pengumuman_tujuan as t', 't.pengumuman_id', '=', 'f.pengumuman_id')
+            ->join('bsi_pengumuman as p', 'p.id', '=', 'f.pengumuman_id')
+            ->whereNull('p.dihapus_at')   // pengumuman yang dihapus: lampiran tidak bisa diunduh BSU
             ->where('f.id', (int) $id)->where('t.bsu_id', CRUDBooster::myId())->first(['f.*']);
         return $this->kirimLampiran($f);
     }

@@ -6,6 +6,7 @@
 	use CRUDBooster;
 	use App\Services\ImporKatalogBsuService;
 	use App\Services\HargaService;
+	use App\Services\WilayahBsiService;
 	use App\Http\Controllers\Concerns\CekPeran;
 
 	class AdminSampahController extends \crocodicstudio\crudbooster\controllers\CBController {
@@ -47,6 +48,7 @@
 			$this->col[] = ["label"=>"Poin per Kg","name"=>"poin_per_kg",'callback_php' => 'number_format($row->poin_per_kg)'];
 			// Kolom harga acuan BSI & margin (diisi lewat tombol "Harga & Margin"). $row->harga_bsi/margin_type dipilih di hook_query_index.
 			$this->col[] = ["label"=>"Harga Acuan BSI","name"=>"bsi_harga_id",'callback_php' => '$row->bsi_harga_id ? "Rp ".number_format($row->harga_bsi) : "-"'];
+			$this->col[] = ["label"=>"BSI Sumber","name"=>"bsi_harga_id",'callback_php' => '$row->bsi_harga_id ? ($row->nama_bsi_sumber ?: "Harga Bersama") : "-"'];
 			$this->col[] = ["label"=>"Margin","name"=>"margin_value",'callback_php' => '$row->bsi_harga_id ? ($row->margin_type == "persen" ? rtrim(rtrim(number_format($row->margin_value, 2, ".", ""), "0"), ".")."%" : "Rp ".number_format($row->margin_value)) : "-"'];
 			$this->col[] = ["label"=>"Sumber Harga","name"=>"auto_sync",'callback_php' => '$row->bsi_harga_id ? ($row->auto_sync ? "Ikut harga BSI" : "Terhubung (manual)") : "Manual"'];
 			# END COLUMNS DO NOT REMOVE THIS LINE
@@ -266,7 +268,8 @@
 	        
 	        $GLOBALS['index_number'] = 0;
 	        $query->addSelect('sampah.margin_type', 'sampah.margin_value', 'sampah.auto_sync', 'sampah.bsi_harga_id',
-	        	DB::raw('(select b.harga from bsi_harga b where b.id = sampah.bsi_harga_id) as harga_bsi'));
+	        	DB::raw('(select b.harga from bsi_harga b where b.id = sampah.bsi_harga_id) as harga_bsi'),
+	        	DB::raw('(select u.name from bsi_harga b join cms_users u on u.id = b.bsi_id where b.id = sampah.bsi_harga_id) as nama_bsi_sumber'));
 	        
 			if ($currentUserId == 1) {
 
@@ -432,7 +435,13 @@
 	        $adminId = $this->hargaBsuId();
 	        $this->cbLoader();
 
-	        $master = DB::table('bsi_harga')->where('is_active', 1)->orderBy('kategori')->orderBy('nama')->get();
+	        // Hanya harga dari BSI kelurahan BSU ini (atau Harga Bersama bila kelurahannya belum punya BSI).
+	        $wilayah = app(WilayahBsiService::class);
+	        $pemilik = $wilayah->pemilikHargaBsu($adminId);
+	        $sumberBsi = $wilayah->bsiUntukBsu($adminId);
+	        $kelId = DB::table('cms_users')->where('id', $adminId)->value('kelurahan_id');
+	        $master = WilayahBsiService::batasiPemilik(DB::table('bsi_harga')->where('is_active', 1)->whereNull('dihapus_at'), $pemilik)
+	            ->orderBy('kategori')->orderBy('nama')->get();
 	        $milik = DB::table('sampah')->where('admin_id', $adminId)->whereNotNull('bsi_harga_id')->get()->keyBy('bsi_harga_id');
 
 	        $baris = [];
@@ -446,14 +455,25 @@
 	        $belumTerhubung = DB::table('sampah')->where('admin_id', $adminId)->whereNull('bsi_harga_id')
 	            ->orderBy('name')->get(['id', 'name', 'price_per_kg']);
 
-	        $perubahanBaru = DB::table('bsi_harga_riwayat as r')->join('bsi_harga as b', 'b.id', '=', 'r.bsi_harga_id')
-	            ->whereNotNull('r.harga_lama')->where('r.tanggal', '>=', now()->subDays(14)->toDateString())
+	        $perubahanBaru = WilayahBsiService::batasiPemilik(
+	            DB::table('bsi_harga_riwayat as r')->join('bsi_harga as b', 'b.id', '=', 'r.bsi_harga_id'), $pemilik, 'b.bsi_id')
+	            ->whereNull('b.dihapus_at')->whereNotNull('r.harga_lama')->where('r.tanggal', '>=', now()->subDays(14)->toDateString())
 	            ->orderByDesc('r.id')->limit(8)->get(['b.nama', 'r.harga_lama', 'r.harga_baru', 'r.tanggal']);
+
+	        // Sambungan lama ke harga BSI lain (mis. BSU pindah kelurahan): ditampilkan sebagai peringatan.
+	        $sambunganLain = DB::table('sampah as s')->join('bsi_harga as b', 'b.id', '=', 's.bsi_harga_id')
+	            ->where('s.admin_id', $adminId)
+	            ->where(function ($w) use ($pemilik) {
+	                if ($pemilik === null) { $w->whereNotNull('b.bsi_id'); }
+	                else { $w->whereNull('b.bsi_id')->orWhere('b.bsi_id', '!=', $pemilik); }
+	            })->count();
 
 	        return view('admin.harga_bsu', [
 	            'page_title' => 'Harga & Margin Sampah',
 	            'baris' => $baris, 'belumTerhubung' => $belumTerhubung,
 	            'master' => $master, 'perubahanBaru' => $perubahanBaru,
+	            'sumberBsi' => $sumberBsi, 'sumberKelurahan' => $kelId ? DB::table('kelurahans')->where('id', $kelId)->value('nama_kelurahan') : null,
+	            'sambunganLain' => $sambunganLain,
 	        ]);
 	    }
 

@@ -13,7 +13,9 @@
 <tr><td>{{ date('d/m/Y', strtotime($r->tanggal)) }}</td><td>{{ $r->nama }}</td>
 <td class="text-right">{{ $r->harga_lama === null ? '-' : 'Rp '.number_format($r->harga_lama,0,',','.') }}</td>
 <td class="text-right">Rp {{ number_format($r->harga_baru,0,',','.') }}</td>
-<td>{{ ['awal'=>'Aktivasi','bsi'=>'Perubahan harga BSI','margin'=>'Atur margin','manual'=>'Manual'][$r->sumber] ?? $r->sumber }}</td>
+<td>@if($r->sumber === 'dihapus')<span class="label label-danger">DIHAPUS</span> Harga acuan dihapus
+@elseif($r->sumber === 'putus')<span class="label label-warning">DIPUTUS</span> Sambungan ke BSI diputus
+@else{{ ['awal'=>'Aktivasi','bsi'=>'Perubahan harga BSI','margin'=>'Atur margin','manual'=>'Manual'][$r->sumber] ?? $r->sumber }}@endif</td>
 <td>{{ $r->catatan }}</td></tr>
 @empty<tr><td colspan="6" class="text-center text-muted">Belum ada perubahan.</td></tr>@endforelse
 </tbody></table></div></div></div>

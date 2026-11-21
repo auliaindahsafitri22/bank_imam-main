@@ -6,9 +6,15 @@ use App\Http\Controllers\Concerns\CekPeran;
 use App\Exports\DaftarHargaExport;
 use App\Services\HargaService;
 use App\Services\KatalogHargaService;
+use App\Services\WilayahBsiService;
+use App\Services\HapusBsiService;
 use Maatwebsite\Excel\Facades\Excel;
 
-/** Harga acuan Bank Sampah Induk (BSI). Hanya BSI, Admin, Super Admin. */
+/**
+ * Harga acuan Bank Sampah Induk (BSI). Hanya BSI, Admin, Super Admin.
+ * Setiap BSI memegang satu kelurahan dan hanya mengelola daftar harganya sendiri (bsi_harga.bsi_id);
+ * Super Admin/Admin memilih BSI yang dikelola lewat pemilih di bagian atas halaman.
+ */
 class AdminBsiHargaController extends \crocodicstudio\crudbooster\controllers\CBController
 {
     use CekPeran;
@@ -26,7 +32,7 @@ class AdminBsiHargaController extends \crocodicstudio\crudbooster\controllers\CB
         $this->button_action_style = "button_icon";
         $this->button_add = true;
         $this->button_edit = true;
-        $this->button_delete = false;   // nonaktifkan lewat status, jangan hapus (riwayat harus utuh)
+        $this->button_delete = false;   // hapus lewat tombol "Hapus" (hapus lunak: riwayat tetap utuh, ada tanda Dihapus)
         $this->button_detail = true;
         $this->button_show = true;
         $this->button_filter = true;
@@ -39,7 +45,7 @@ class AdminBsiHargaController extends \crocodicstudio\crudbooster\controllers\CB
         $this->col[] = ["label" => "Kategori", "name" => "kategori"];
         $this->col[] = ["label" => "Harga BSI / kg", "name" => "harga", 'callback_php' => '"Rp. ".number_format($row->harga,0,",",".")'];
         $this->col[] = ["label" => "Poin / kg", "name" => "poin_per_kg"];
-        $this->col[] = ["label" => "Status", "name" => "is_active", 'callback_php' => '$row->is_active ? "Aktif" : "Nonaktif"'];
+        $this->col[] = ["label" => "Status", "name" => "is_active", 'callback_php' => '$row->dihapus_at ? "<span class=\"label label-danger\">DIHAPUS ".date("d/m/Y", strtotime($row->dihapus_at))."</span>" : ($row->is_active ? "Aktif" : "Nonaktif")'];
         $this->col[] = ["label" => "Diperbarui", "name" => "updated_at", 'callback_php' => '$row->updated_at ? date("d/m/Y H:i", strtotime($row->updated_at)) : "-"'];
 
         $this->form = [];
@@ -53,19 +59,24 @@ class AdminBsiHargaController extends \crocodicstudio\crudbooster\controllers\CB
 
         $this->addaction = [];
         $this->addaction[] = ['label' => 'Riwayat', 'url' => CRUDBooster::mainpath('riwayat/[id]'), 'icon' => 'fa fa-history', 'color' => 'info'];
+        $this->addaction[] = ['label' => 'Hapus', 'url' => CRUDBooster::mainpath('hapus/[id]'), 'icon' => 'fa fa-trash', 'color' => 'danger', 'showIf' => "'[dihapus_at]' == ''"];
+        $this->addaction[] = ['label' => 'Pulihkan', 'url' => CRUDBooster::mainpath('pulihkan/[id]'), 'icon' => 'fa fa-undo', 'color' => 'success', 'showIf' => "'[dihapus_at]' != ''"];
 
         $this->index_button = [];
         $this->index_button[] = ['label' => 'Isi Harga Cepat', 'url' => CRUDBooster::mainpath('isi-cepat'), 'icon' => 'fa fa-table', 'color' => 'primary'];
         $this->index_button[] = ['label' => 'Impor dari File', 'url' => CRUDBooster::mainpath('impor'), 'icon' => 'fa fa-upload', 'color' => 'warning'];
         $this->index_button[] = ['label' => 'Kirim Pengumuman ke BSU', 'url' => CRUDBooster::adminPath('bsi_pengumuman/kirim'), 'icon' => 'fa fa-bullhorn', 'color' => 'success'];
+        $this->index_button[] = request('dihapus')
+            ? ['label' => 'Tampilkan yang aktif', 'url' => CRUDBooster::mainpath(), 'icon' => 'fa fa-list', 'color' => 'default']
+            : ['label' => 'Tampilkan yang dihapus', 'url' => CRUDBooster::mainpath() . '?dihapus=1', 'icon' => 'fa fa-trash-o', 'color' => 'default'];
         $this->index_button[] = ['label' => 'Riwayat Semua Perubahan', 'url' => CRUDBooster::mainpath('riwayat'), 'icon' => 'fa fa-history', 'color' => 'info'];
 
         $this->button_selected = [];
         $this->alert = [];
         $this->table_row_color = [];
         $this->index_statistic = [];
-        $this->script_js = $this->skripSaran();
-        $this->pre_index_html = null;
+        $this->script_js = $this->skripSaran() . $this->skripHapusLangsung('Hapus harga acuan ini? BSU yang terhubung diputus (harga beli nasabah tetap). Data tetap tercatat bertanda DIHAPUS dan bisa dipulihkan.', 'Pulihkan harga acuan ini?');
+        $this->pre_index_html = $this->bannerPemilikHtml();
         $this->post_index_html = null;
         $this->load_js = [];
         $this->style_css = null;
@@ -78,9 +89,118 @@ class AdminBsiHargaController extends \crocodicstudio\crudbooster\controllers\CB
         return parent::getIndex();
     }
 
+    /** Service katalog/impor yang sudah dibatasi ke daftar harga BSI yang sedang dikelola. */
+    private function katalogSvc()
+    {
+        return app(KatalogHargaService::class)->untukPemilik($this->pemilikHargaAktif());
+    }
+
+    /** Daftar hanya berisi harga milik BSI yang sedang dikelola (BSI lain tidak terlihat). */
+    public function hook_query_index(&$query)
+    {
+        WilayahBsiService::batasiPemilik($query, $this->pemilikHargaAktif(), 'bsi_harga.bsi_id');
+        $query->addSelect('bsi_harga.dihapus_at');
+        // Bawaan: hanya yang aktif. Dengan ?dihapus=1 hanya yang sudah dihapus (bertanda DIHAPUS).
+        if (request('dihapus')) { $query->whereNotNull('bsi_harga.dihapus_at'); }
+        else { $query->whereNull('bsi_harga.dihapus_at'); }
+    }
+
+    private function barisAktifAtauKembali($id)
+    {
+        $r = DB::table('bsi_harga')->where('id', (int) $id)->first();
+        if (!$r) { CRUDBooster::redirect(CRUDBooster::mainpath(), 'Jenis harga acuan tidak ditemukan.', 'warning'); }
+        return $r;
+    }
+
+    /** Langkah 1 hapus: halaman konfirmasi (tidak mengubah data; perubahan lewat POST). */
+    public function getHapus($id)
+    {
+        $this->wajibPeran([1, 2, 'bsi']);
+        $this->wajibHargaMilikBsi($id);
+        $this->cbLoader();
+        $r = $this->barisAktifAtauKembali($id);
+        if ($r->dihapus_at) { CRUDBooster::redirect(CRUDBooster::mainpath(), 'Jenis ini sudah dihapus.', 'warning'); }
+        $terhubung = DB::table('sampah')->where('bsi_harga_id', $r->id);
+        return view('admin.hapus_konfirmasi', [
+            'page_title' => 'Hapus Harga Acuan', 'judul' => 'Hapus harga acuan "' . strip_tags($r->nama) . '"?',
+            'rincian' => [
+                'Harga acuan saat ini <b>Rp ' . number_format($r->harga, 0, ',', '.') . '/kg</b>.',
+                '<b>' . (clone $terhubung)->distinct()->count('admin_id') . ' BSU</b> (' . (clone $terhubung)->count() . ' jenis sampah) masih terhubung. Sambungannya akan diputus: <b>harga beli nasabah tidak berubah</b>, margin dikosongkan, dan BSU diberi notifikasi.',
+                'Data tidak dibuang: riwayat tetap ada dengan tanda <span class="label label-danger">DIHAPUS</span> dan bisa dipulihkan (sambungan BSU tidak ikut dipulihkan).',
+            ],
+            'id' => $r->id, 'aksi' => CRUDBooster::mainpath('hapus'), 'kembali' => CRUDBooster::mainpath(), 'tombol' => 'Ya, hapus',
+        ]);
+    }
+
+    public function postHapus()
+    {
+        $this->wajibPeran([1, 2, 'bsi']);
+        $this->wajibHargaMilikBsi((int) request('id'));
+        try {
+            $r = app(HapusBsiService::class)->hapusHarga((int) request('id'), (int) CRUDBooster::myId());
+        } catch (\InvalidArgumentException $e) {
+            CRUDBooster::redirect(CRUDBooster::mainpath(), $e->getMessage(), 'warning');
+        }
+        CRUDBooster::insertLog('Menghapus harga acuan BSI #' . (int) request('id') . ': ' . json_encode(['bsu' => $r['bsu'], 'sampah' => $r['sampah']]));
+        CRUDBooster::redirect(CRUDBooster::mainpath(), 'Harga acuan dihapus. ' . $r['bsu'] . ' BSU diputus dari jenis ini dan diberi notifikasi.', 'success');
+    }
+
+    public function getPulihkan($id)
+    {
+        $this->wajibPeran([1, 2, 'bsi']);
+        $this->wajibHargaMilikBsi($id);
+        $this->cbLoader();
+        $r = $this->barisAktifAtauKembali($id);
+        if (!$r->dihapus_at) { CRUDBooster::redirect(CRUDBooster::mainpath(), 'Jenis ini tidak dalam keadaan dihapus.', 'warning'); }
+        return view('admin.hapus_konfirmasi', [
+            'page_title' => 'Pulihkan Harga Acuan', 'judul' => 'Pulihkan harga acuan "' . strip_tags($r->nama) . '"?', 'bahaya' => false, 'ikon' => 'undo',
+            'rincian' => ['Dihapus pada ' . date('d/m/Y H:i', strtotime($r->dihapus_at)) . '. Jenis akan kembali muncul di daftar aktif dengan harga Rp ' . number_format($r->harga, 0, ',', '.') . '/kg.',
+                'BSU yang sempat diputus <b>tidak</b> tersambung otomatis; mereka menghubungkan ulang di Harga &amp; Margin.'],
+            'id' => $r->id, 'aksi' => CRUDBooster::mainpath('pulihkan'), 'kembali' => CRUDBooster::mainpath() . '?dihapus=1', 'tombol' => 'Pulihkan',
+        ]);
+    }
+
+    public function postPulihkan()
+    {
+        $this->wajibPeran([1, 2, 'bsi']);
+        $this->wajibHargaMilikBsi((int) request('id'));
+        try {
+            app(HapusBsiService::class)->pulihkanHarga((int) request('id'));
+        } catch (\InvalidArgumentException $e) {
+            CRUDBooster::redirect(CRUDBooster::mainpath() . '?dihapus=1', $e->getMessage(), 'warning');
+        }
+        CRUDBooster::insertLog('Memulihkan harga acuan BSI #' . (int) request('id'));
+        CRUDBooster::redirect(CRUDBooster::mainpath(), 'Harga acuan dipulihkan.', 'success');
+    }
+
+    public function getEdit($id)
+    {
+        $this->wajibPeran([1, 2, 'bsi']);
+        $this->wajibHargaMilikBsi($id);
+        if (DB::table('bsi_harga')->where('id', (int) $id)->whereNotNull('dihapus_at')->exists()) {
+            CRUDBooster::redirect(CRUDBooster::mainpath() . '?dihapus=1', 'Jenis yang dihapus tidak bisa diubah. Pulihkan dulu.', 'warning');
+        }
+        return parent::getEdit($id);
+    }
+
+    public function getDetail($id)
+    {
+        $this->wajibPeran([1, 2, 'bsi']);
+        $this->wajibHargaMilikBsi($id);
+        return parent::getDetail($id);
+    }
+
     public function hook_before_add(&$postdata)
     {
         $this->wajibPeran([1, 2, 'bsi']);
+        $pemilik = $this->pemilikHargaAktif();
+        $kunci = KatalogHargaService::kunci($postdata['nama'] ?? '');
+        $ada = WilayahBsiService::batasiPemilik(DB::table('bsi_harga'), $pemilik)
+            ->whereRaw('LOWER(TRIM(nama)) = ?', [$kunci])->exists();
+        if ($ada) {
+            CRUDBooster::redirect(CRUDBooster::mainpath(), 'Jenis sampah "' . strip_tags($postdata['nama']) . '" sudah ada di daftar harga ini.', 'warning');
+        }
+        $postdata['bsi_id'] = $pemilik;                 // pemilik dipaksa dari sesi, bukan dari input form
         $postdata['updated_by'] = CRUDBooster::myId();
     }
 
@@ -93,6 +213,11 @@ class AdminBsiHargaController extends \crocodicstudio\crudbooster\controllers\CB
     public function hook_before_edit(&$postdata, $id)
     {
         $this->wajibPeran([1, 2, 'bsi']);
+        $this->wajibHargaMilikBsi($id);
+        if (DB::table('bsi_harga')->where('id', (int) $id)->whereNotNull('dihapus_at')->exists()) {
+            CRUDBooster::redirect(CRUDBooster::mainpath(), 'Jenis yang dihapus tidak bisa diubah.', 'warning');
+        }
+        unset($postdata['bsi_id']);                      // pemilik tidak boleh dipindah lewat form
         // Harga TIDAK ditulis oleh CRUDBooster; diproses HargaService agar riwayat, sinkron BSU, dan notifikasi jalan.
         $this->hargaBaru = array_key_exists('harga', $postdata) ? (int) $postdata['harga'] : null;
         unset($postdata['harga']);
@@ -113,10 +238,14 @@ class AdminBsiHargaController extends \crocodicstudio\crudbooster\controllers\CB
     public function getRiwayat($id = null)
     {
         $this->wajibPeran([1, 2, 'bsi']);
+        if ($id) {
+            $this->wajibHargaMilikBsi($id);
+        }
         $this->cbLoader();
         $data = [
             'page_title' => 'Riwayat Perubahan Harga BSI',
-            'rows' => app(HargaService::class)->riwayatBsi($id ? (int) $id : null, 300),
+            'bannerBsi' => $this->bannerPemilikHtml(),
+            'rows' => app(HargaService::class)->riwayatBsi($id ? (int) $id : null, 300, $id ? false : $this->pemilikHargaAktif()),
             'judul' => $id ? DB::table('bsi_harga')->where('id', (int) $id)->value('nama') : null,
             'kembali' => CRUDBooster::mainpath(),
         ];
@@ -129,7 +258,7 @@ class AdminBsiHargaController extends \crocodicstudio\crudbooster\controllers\CB
     public function getKatalog()
     {
         $this->wajibPeran([1, 2, 'bsi']);
-        $svc = app(KatalogHargaService::class);
+        $svc = $this->katalogSvc();
         $k = $svc->katalog();
         return response()->json([
             'kategori' => $svc->daftarKategori($k),
@@ -141,14 +270,14 @@ class AdminBsiHargaController extends \crocodicstudio\crudbooster\controllers\CB
     {
         $this->wajibPeran([1, 2, 'bsi']);
         $this->cbLoader();
-        $svc = app(KatalogHargaService::class);
+        $svc = $this->katalogSvc();
         $katalog = $svc->katalog();
         $kelompok = [];
         foreach ($katalog as $i) {
             $kelompok[$i['kategori'] !== '' ? $i['kategori'] : 'Tanpa kategori'][] = $i;
         }
         return view('admin.bsi_isi_cepat', [
-            'page_title' => 'Isi Harga Cepat', 'kelompok' => $kelompok, 'kategori' => $svc->daftarKategori($katalog),
+            'bannerBsi' => $this->bannerPemilikHtml(), 'page_title' => 'Isi Harga Cepat', 'kelompok' => $kelompok, 'kategori' => $svc->daftarKategori($katalog),
             'total' => count($katalog), 'belum' => count(array_filter($katalog, function ($i) { return $i['harga'] === null; })),
         ]);
     }
@@ -157,7 +286,7 @@ class AdminBsiHargaController extends \crocodicstudio\crudbooster\controllers\CB
     {
         $this->wajibPeran([1, 2, 'bsi']);
         try {
-            $r = app(KatalogHargaService::class)->simpanCepat((array) request('row', []), (int) CRUDBooster::myId());
+            $r = $this->katalogSvc()->simpanCepat((array) request('row', []), (int) CRUDBooster::myId());
         } catch (\InvalidArgumentException $e) {
             CRUDBooster::redirect(CRUDBooster::mainpath('isi-cepat'), $e->getMessage(), 'warning');
         }
@@ -169,13 +298,13 @@ class AdminBsiHargaController extends \crocodicstudio\crudbooster\controllers\CB
     {
         $this->wajibPeran([1, 2, 'bsi']);
         $this->cbLoader();
-        return view('admin.bsi_impor', ['page_title' => 'Impor Harga Acuan dari File', 'pratinjau' => null, 'token' => null]);
+        return view('admin.bsi_impor', ['bannerBsi' => $this->bannerPemilikHtml(), 'page_title' => 'Impor Harga Acuan dari File', 'pratinjau' => null, 'token' => null]);
     }
 
     public function getTemplate()
     {
         $this->wajibPeran([1, 2, 'bsi']);
-        $svc = app(KatalogHargaService::class);
+        $svc = $this->katalogSvc();
         return Excel::download(new DaftarHargaExport('Harga BSI', KatalogHargaService::judulTemplate(), $svc->barisTemplate()),
             'template-harga-acuan-bsi.xlsx');
     }
@@ -186,7 +315,7 @@ class AdminBsiHargaController extends \crocodicstudio\crudbooster\controllers\CB
         $this->wajibPeran([1, 2, 'bsi']);
         $this->cbLoader();
         $file = request()->file('berkas');
-        $svc = app(KatalogHargaService::class);
+        $svc = $this->katalogSvc();
         try {
             if (!$file || !$file->isValid()) {
                 throw new \InvalidArgumentException('Pilih file terlebih dahulu (atau file melebihi batas unggah server).');
@@ -196,7 +325,7 @@ class AdminBsiHargaController extends \crocodicstudio\crudbooster\controllers\CB
             CRUDBooster::redirect(CRUDBooster::mainpath('impor'), $e->getMessage(), 'warning');
         }
         $token = $svc->simpanPratinjau((int) CRUDBooster::myId(), $pratinjau['baris']);
-        return view('admin.bsi_impor', ['page_title' => 'Pratinjau Impor Harga', 'pratinjau' => $pratinjau, 'token' => $token]);
+        return view('admin.bsi_impor', ['bannerBsi' => $this->bannerPemilikHtml(), 'page_title' => 'Pratinjau Impor Harga', 'pratinjau' => $pratinjau, 'token' => $token]);
     }
 
     /** Langkah 2: terapkan pratinjau yang sudah diperiksa. */
@@ -204,7 +333,7 @@ class AdminBsiHargaController extends \crocodicstudio\crudbooster\controllers\CB
     {
         $this->wajibPeran([1, 2, 'bsi']);
         try {
-            $r = app(KatalogHargaService::class)->terapkanImpor((int) CRUDBooster::myId(), request('token'));
+            $r = $this->katalogSvc()->terapkanImpor((int) CRUDBooster::myId(), request('token'));
         } catch (\InvalidArgumentException $e) {
             CRUDBooster::redirect(CRUDBooster::mainpath('impor'), $e->getMessage(), 'warning');
         }

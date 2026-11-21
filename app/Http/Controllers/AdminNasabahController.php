@@ -4,6 +4,7 @@
 	use Request;
 	use DB;
 	use CRUDBooster;
+	use Carbon\Carbon;
 
 	class AdminNasabahController extends \crocodicstudio\crudbooster\controllers\CBController {
 
@@ -37,10 +38,32 @@
 			$this->col[] = ["label"=>"Alamat","name"=>"address"];
 			$this->col[] = ["label"=>"No. Hp","name"=>"phone_number"];
 			$this->col[] = ["label"=>"Foto","name"=>"picture","image"=>true];
-			$this->col[] = ["label" => "Total Transaksi (Rp)", "callback_php" => '"Rp ".number_format(\App\Http\Controllers\AdminNasabahController::nasabahStat($row->id, "rp"), 0, ",", ".")'];
-			$this->col[] = ["label" => "Total Berat (kg)", "callback_php" => 'number_format(\App\Http\Controllers\AdminNasabahController::nasabahStat($row->id, "kg"), 2, ",", ".")'];
-			$this->col[] = ["label" => "Transaksi Terakhir", "callback_php" => '\App\Http\Controllers\AdminNasabahController::nasabahStat($row->id, "terakhir")'];
-			$this->col[] = ["label" => "Aktivitas", "callback_php" => '\App\Http\Controllers\AdminNasabahController::nasabahStat($row->id, "aktivitas")'];
+			$this->col[] = [
+				"label" => "Total Transaksi (Rp)",
+				"name" => "(select coalesce(sum(total_income),0) from transactions where transactions.user_id = users.id) as total_transaksi",
+				"callback_php" => '"Rp " . number_format(($row->total_transaksi ?: 0), 0, ",", ".")'
+			];
+			$this->col[] = [
+				"label" => "Total Saldo Akhir (Rp)",
+				"name" => "(select coalesce(total_saldo,0) from saldo where saldo.user_id = users.id order by saldo.id asc limit 1) as total_saldo_akhir",
+				"callback_php" => '"Rp " . number_format(($row->total_saldo_akhir ?: 0), 0, ",", ".")'
+			];
+			$this->col[] = [
+				"label" => "Total Berat (kg)",
+				"name" => "(select coalesce(sum(total_weight),0) from transactions where transactions.user_id = users.id) as total_berat",
+				"callback_php" => 'number_format(($row->total_berat ?: 0), 2, ",", ".") . " kg"'
+			];
+			$this->col[] = [
+				"label" => "Transaksi Terakhir",
+				"name" => "(select max(created_at) from transactions where transactions.user_id = users.id) as transaksi_terakhir",
+				"callback_php" => '$row->transaksi_terakhir ? date("d/m/Y H:i", strtotime($row->transaksi_terakhir)) : "-"'
+			];
+			$this->col[] = [
+				"label" => "Aktivitas",
+				"name" => "(select max(created_at) from transactions where transactions.user_id = users.id) as aktivitas_terakhir",
+				"callback_php" => '\App\Http\Controllers\AdminNasabahController::formatAktivitas($row->aktivitas_terakhir)'
+			];
+			
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
@@ -53,99 +76,333 @@
 			$this->form[] = ['label'=>'Foto','name'=>'picture','type'=>'upload','validation'=>'required|image|max:3000','width'=>'col-sm-10','help'=>'File types support : JPG, JPEG, PNG, GIF, BMP'];
 			# END FORM DO NOT REMOVE THIS LINE
 
+			# OLD START FORM
+			//$this->form = [];
+			//$this->form[] = ['label'=>'Username','name'=>'username','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'Email','name'=>'email','type'=>'email','validation'=>'required|min:1|max:255|email|unique:users','width'=>'col-sm-10','placeholder'=>'Please enter a valid email address'];
+			//$this->form[] = ['label'=>'Password','name'=>'password','type'=>'password','validation'=>'min:3|max:32','width'=>'col-sm-10','help'=>'Minimum 5 characters. Please leave empty if you did not change the password.'];
+			//$this->form[] = ['label'=>'Alamat','name'=>'address','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'No. HP','name'=>'phone_number','type'=>'number','validation'=>'required|numeric','width'=>'col-sm-10','placeholder'=>'You can only enter the number only'];
+			//$this->form[] = ['label'=>'Foto','name'=>'picture','type'=>'upload','validation'=>'required|image|max:3000','width'=>'col-sm-10','help'=>'File types support : JPG, JPEG, PNG, GIF, BMP'];
+			# OLD END FORM
+
+			/* 
+	        | ---------------------------------------------------------------------- 
+	        | Sub Module
+	        | ----------------------------------------------------------------------     
+			| @label          = Label of action 
+			| @path           = Path of sub module
+			| @foreign_key 	  = foreign key of sub table/module
+			| @button_color   = Bootstrap Class (primary,success,warning,danger)
+			| @button_icon    = Font Awesome Class  
+			| @parent_columns = Sparate with comma, e.g : name,created_at
+	        | 
+	        */
 	        $this->sub_module = array();
+
+
+	        /* 
+	        | ---------------------------------------------------------------------- 
+	        | Add More Action Button / Menu
+	        | ----------------------------------------------------------------------     
+	        | @label       = Label of action 
+	        | @url         = Target URL, you can use field alias. e.g : [id], [name], [title], etc
+	        | @icon        = Font awesome class icon. e.g : fa fa-bars
+	        | @color 	   = Default is primary. (primary, warning, succecss, info)     
+	        | @showIf 	   = If condition when action show. Use field alias. e.g : [id] == 1
+	        | 
+	        */
 	        $this->addaction = array();
+
+
+	        /* 
+	        | ---------------------------------------------------------------------- 
+	        | Add More Button Selected
+	        | ----------------------------------------------------------------------     
+	        | @label       = Label of action 
+	        | @icon 	   = Icon from fontawesome
+	        | @name 	   = Name of button 
+	        | Then about the action, you should code at actionButtonSelected method 
+	        | 
+	        */
 	        $this->button_selected = array();
+
+	                
+	        /* 
+	        | ---------------------------------------------------------------------- 
+	        | Add alert message to this module at overheader
+	        | ----------------------------------------------------------------------     
+	        | @message = Text of message 
+	        | @type    = warning,success,danger,info        
+	        | 
+	        */
 	        $this->alert        = array();
+	                
+
+	        
+	        /* 
+	        | ---------------------------------------------------------------------- 
+	        | Add more button to header button 
+	        | ----------------------------------------------------------------------     
+	        | @label = Name of button 
+	        | @url   = URL Target
+	        | @icon  = Icon from Awesome.
+	        | 
+	        */
 	        $this->index_button = array();
-	        $this->table_row_color = array();
+
+
+
+	        /* 
+	        | ---------------------------------------------------------------------- 
+	        | Customize Table Row Color
+	        | ----------------------------------------------------------------------     
+	        | @condition = If condition. You may use field alias. E.g : [id] == 1
+	        | @color = Default is none. You can use bootstrap success,info,warning,danger,primary.        
+	        | 
+	        */
+	        $this->table_row_color = array();     	          
+
+	        
+	        /*
+	        | ---------------------------------------------------------------------- 
+	        | You may use this bellow array to add statistic at dashboard 
+	        | ---------------------------------------------------------------------- 
+	        | @label, @count, @icon, @color 
+	        |
+	        */
 	        $this->index_statistic = array();
+
+
+
+	        /*
+	        | ---------------------------------------------------------------------- 
+	        | Add javascript at body 
+	        | ---------------------------------------------------------------------- 
+	        | javascript code in the variable 
+	        | $this->script_js = "function() { ... }";
+	        |
+	        */
 	        $this->script_js = NULL;
+
+
+            /*
+	        | ---------------------------------------------------------------------- 
+	        | Include HTML Code before index table 
+	        | ---------------------------------------------------------------------- 
+	        | html code to display it before index table
+	        | $this->pre_index_html = "<p>test</p>";
+	        |
+	        */
 	        $this->pre_index_html = null;
+	        
+	        
+	        
+	        /*
+	        | ---------------------------------------------------------------------- 
+	        | Include HTML Code after index table 
+	        | ---------------------------------------------------------------------- 
+	        | html code to display it after index table
+	        | $this->post_index_html = "<p>test</p>";
+	        |
+	        */
 	        $this->post_index_html = null;
+	        
+	        
+	        
+	        /*
+	        | ---------------------------------------------------------------------- 
+	        | Include Javascript File 
+	        | ---------------------------------------------------------------------- 
+	        | URL of your javascript each array 
+	        | $this->load_js[] = asset("myfile.js");
+	        |
+	        */
 	        $this->load_js = array();
+	        
+	        
+	        
+	        /*
+	        | ---------------------------------------------------------------------- 
+	        | Add css style at body 
+	        | ---------------------------------------------------------------------- 
+	        | css code in the variable 
+	        | $this->style_css = ".style{....}";
+	        |
+	        */
 	        $this->style_css = NULL;
+	        
+	        
+	        
+	        /*
+	        | ---------------------------------------------------------------------- 
+	        | Include css File 
+	        | ---------------------------------------------------------------------- 
+	        | URL of your css each array 
+	        | $this->load_css[] = asset("myfile.css");
+	        |
+	        */
 	        $this->load_css[] =  asset('ecobuana/bootstrap/css/admin.css');
+	        
+	        
 	    }
 
+
+	    /*
+	    | ---------------------------------------------------------------------- 
+	    | Hook for button selected
+	    | ---------------------------------------------------------------------- 
+	    | @id_selected = the id selected
+	    | @button_name = the name of button
+	    |
+	    */
 	    public function actionButtonSelected($id_selected,$button_name) {
+	        //Your code here
+	            
 	    }
 
-	    public static function nasabahStat($id, $field)
-	    {
-	        static $stats = null;
-	        if ($stats === null) {
-	            $q = DB::table('transactions')
-	                ->whereNotNull('user_id')
-	                ->select('user_id',
-	                    DB::raw('SUM(total_income) AS rp'),
-	                    DB::raw('SUM(total_weight) AS kg'),
-	                    DB::raw('MAX(created_at) AS terakhir'))
-	                ->groupBy('user_id');
 
-	            // pengelola hanya menghitung transaksi di BSU-nya sendiri
-	            $me = CRUDBooster::myId();
-	            if ($me != 1 && $me != 10) {
-	                $q->where('admin_id', $me);
-	            }
-	            $stats = $q->get()->keyBy('user_id');
-	        }
-
-	        $s = isset($stats[$id]) ? $stats[$id] : null;
-
-	        switch ($field) {
-	            case 'rp':
-	                return $s ? (float) $s->rp : 0;
-	            case 'kg':
-	                return $s ? (float) $s->kg : 0;
-	            case 'terakhir':
-	                return ($s && $s->terakhir) ? date('d-m-Y', strtotime($s->terakhir)) : '-';
-	            case 'aktivitas':
-	                if (!$s || !$s->terakhir) {
-	                    return '<span class="label label-default">Belum pernah</span>';
-	                }
-	                $hari = (time() - strtotime($s->terakhir)) / 86400;
-	                return $hari <= 30
-	                    ? '<span class="label label-success">Aktif</span>'
-	                    : '<span class="label label-danger">Tidak aktif</span>';
-	        }
-	        return '';
-	    }
-
+	    /*
+	    | ---------------------------------------------------------------------- 
+	    | Hook for manipulate query of index result 
+	    | ---------------------------------------------------------------------- 
+	    | @query = current sql query 
+	    |
+	    */
 	    public function hook_query_index(&$query) {
-	        $currentUserId = CRUDBooster::myId();
-
+	        $currentUserId = CRUDBooster::myId(); 
+	        
 	        $GLOBALS['index_number'] = 0;
-
+	        
 			if ($currentUserId == 1) {
 
 			}elseif($currentUserId == 10) {
-
+				
 			}
 			else {
 				$query->where('cms_user_id', $currentUserId);
 			}
 	    }
 
-	    public function hook_row_index($column_index,&$column_value) {
+	    /*
+	    | ---------------------------------------------------------------------- 
+	    | Hook for manipulate row of index table html 
+	    | ---------------------------------------------------------------------- 
+	    |
+	    */    
+	    public function hook_row_index($column_index,&$column_value) {	        
+	    	//Your code here
 	    }
 
-	    public function hook_before_add(&$postdata) {
+	    /*
+	    | ---------------------------------------------------------------------- 
+	    | Hook for manipulate data input before add data is execute
+	    | ---------------------------------------------------------------------- 
+	    | @arr
+	    |
+	    */
+	    public function hook_before_add(&$postdata) {        
+	        // Nasabah baru yang dibuat oleh akun BSU otomatis menjadi milik BSU tsb.
+	        // Tanpa ini cms_user_id = NULL, sehingga tidak lolos filter di hook_query_index
+	        // dan nasabah "hilang" dari daftar (lalu muncul error "already exists" saat diinput ulang).
+	        $currentUserId = CRUDBooster::myId();
+	        if ($currentUserId != 1 && $currentUserId != 10) {
+	            $postdata['cms_user_id'] = $currentUserId;
+	        }
 	    }
 
-	    public function hook_after_add($id) {
+	    /* 
+	    | ---------------------------------------------------------------------- 
+	    | Hook for execute command after add public static function called 
+	    | ---------------------------------------------------------------------- 
+	    | @id = last insert id
+	    | 
+	    */
+	    public function hook_after_add($id) {        
+	        // Samakan dengan registrasi dari aplikasi nasabah: siapkan baris poin = 0
+	        if (!DB::table('points')->where('user_id', $id)->exists()) {
+	            DB::table('points')->insert([
+	                'user_id'      => $id,
+	                'total_points' => 0,
+	                'created_at'   => now(),
+	                'updated_at'   => now(),
+	            ]);
+	        }
 	    }
 
-	    public function hook_before_edit(&$postdata,$id) {
+	    /* 
+	    | ---------------------------------------------------------------------- 
+	    | Hook for manipulate data input before update data is execute
+	    | ---------------------------------------------------------------------- 
+	    | @postdata = input post data 
+	    | @id       = current id 
+	    | 
+	    */
+	    public function hook_before_edit(&$postdata,$id) {        
+	        //Your code here
+
 	    }
 
+	    /* 
+	    | ---------------------------------------------------------------------- 
+	    | Hook for execute command after edit public static function called
+	    | ----------------------------------------------------------------------     
+	    | @id       = current id 
+	    | 
+	    */
 	    public function hook_after_edit($id) {
+	        //Your code here 
+
 	    }
 
+	    /* 
+	    | ---------------------------------------------------------------------- 
+	    | Hook for execute command before delete public static function called
+	    | ----------------------------------------------------------------------     
+	    | @id       = current id 
+	    | 
+	    */
 	    public function hook_before_delete($id) {
+	        //Your code here
+
 	    }
 
+	    /* 
+	    | ---------------------------------------------------------------------- 
+	    | Hook for execute command after delete public static function called
+	    | ----------------------------------------------------------------------     
+	    | @id       = current id 
+	    | 
+	    */
 	    public function hook_after_delete($id) {
+	        //Your code here
+
 	    }
+
+
+
+	    //By the way, you can still create your own method in here... :) 
+
+		public static function formatAktivitas($transaksiTerakhir)
+		{
+			if (empty($transaksiTerakhir)) {
+				return '<span class="text-muted" style="font-style: italic;">Belum ada transaksi</span>';
+			}
+
+			$carbon = Carbon::parse($transaksiTerakhir);
+			$diffDays = $carbon->diffInDays(Carbon::now());
+			$diffHuman = $carbon->locale('id')->diffForHumans();
+
+			// Jika lebih dari 60 hari tidak aktif: warna merah
+			if ($diffDays > 60) {
+				return '<span style="color: #dd4b39; font-weight: 600;" title="' . date('d/m/Y H:i', strtotime($transaksiTerakhir)) . '"><i class="fa fa-circle" style="font-size: 8px; margin-right: 4px;"></i>' . $diffHuman . '</span>';
+			}
+			// Jika lebih dari 30 hari (31 - 60 hari): warna kuning / oranye
+			if ($diffDays > 30) {
+				return '<span style="color: #f39c12; font-weight: 600;" title="' . date('d/m/Y H:i', strtotime($transaksiTerakhir)) . '"><i class="fa fa-circle" style="font-size: 8px; margin-right: 4px;"></i>' . $diffHuman . '</span>';
+			}
+			// Jika 30 hari atau kurang: warna hijau (aktif)
+			return '<span style="color: #00a65a; font-weight: 600;" title="' . date('d/m/Y H:i', strtotime($transaksiTerakhir)) . '"><i class="fa fa-circle" style="font-size: 8px; margin-right: 4px;"></i>' . $diffHuman . '</span>';
+		}
 
 	}

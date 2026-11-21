@@ -1,5 +1,6 @@
 @extends('crudbooster::admin_template')
 @section('content')
+{!! $bannerBsi ?? '' !!}
 <style>#daftar-bsu{max-height:360px;overflow:auto;border:1px solid #ddd;border-radius:6px;padding:6px 10px} #daftar-bsu label{display:block;font-weight:normal;padding:5px 0;margin:0;border-bottom:1px solid #f1f1f1;cursor:pointer} #daftar-bsu input{width:18px;height:18px;vertical-align:middle;margin-right:8px}</style>
 <p><a href="{{ CRUDBooster::mainpath() }}" class="btn btn-default"><i class="fa fa-arrow-left"></i> Kembali</a></p>
 <form method="post" action="{{ CRUDBooster::mainpath('kirim') }}" id="f" enctype="multipart/form-data">{{ csrf_field() }}
