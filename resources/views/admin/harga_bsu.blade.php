@@ -31,16 +31,18 @@
 
 <form method="post" action="{{ CRUDBooster::mainpath('harga-simpan') }}">
 {{ csrf_field() }}
-<div class="box box-default"><div class="box-header with-border"><h3 class="box-title">Harga & margin jenis sampah</h3>
- <div class="box-tools"><a href="{{ CRUDBooster::mainpath('harga-riwayat') }}" class="btn btn-sm btn-default"><i class="fa fa-history"></i> Riwayat perubahan</a></div></div>
+<div class="box box-default"><div class="box-header with-border" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+ <h3 class="box-title" style="float:none;margin:0">Harga & Margin Jenis Sampah</h3>
+ <div class="box-tools" style="position:static;float:none"><a href="{{ CRUDBooster::mainpath('harga-riwayat') }}" class="btn btn-sm btn-default"><i class="fa fa-history"></i> Riwayat perubahan</a></div></div>
 <div class="box-body table-responsive">
 <table class="table table-bordered table-striped" id="tbl-harga">
-<thead><tr><th>Jenis Sampah</th><th class="text-right">Harga BSI/kg</th><th style="width:140px">Jenis margin</th><th style="width:130px">Margin</th><th class="text-right">Harga beli nasabah/kg</th><th>Ikuti BSI</th><th></th></tr></thead>
+<thead><tr><th style="min-width:180px">Jenis Sampah</th><th>Kategori</th><th class="text-right">Harga BSI/kg</th><th style="width:140px">Jenis margin</th><th style="width:130px">Margin</th><th class="text-right">Harga beli nasabah/kg</th><th>Ikuti BSI</th><th></th></tr></thead>
 <tbody>
 @foreach($baris as $b)
  @php($m=$b->master)@php($s=$b->sampah)
  <tr data-bsi="{{ $m->harga }}">
-  <td><b>{{ $m->nama }}</b><br><small class="text-muted">{{ $m->kategori }}</small></td>
+  <td><b>{{ $m->nama }}</b></td>
+  <td>{{ $m->kategori ?: '-' }}</td>
   <td class="text-right">Rp {{ number_format($m->harga,0,',','.') }}</td>
   @if($s)
    <td><select name="margin[{{ $s->id }}][type]" class="form-control jenis">
@@ -56,7 +58,7 @@
   @endif
  </tr>
 @endforeach
-@if(!count($baris))<tr><td colspan="7" class="text-center text-muted">BSI belum mengisi daftar harga acuan.</td></tr>@endif
+@if(!count($baris))<tr><td colspan="8" class="text-center text-muted">BSI belum mengisi daftar harga acuan.</td></tr>@endif
 </tbody></table></div>
 <div class="box-footer"><button class="btn btn-primary btn-lg"><i class="fa fa-save"></i> Simpan semua margin</button></div></div>
 </form>
